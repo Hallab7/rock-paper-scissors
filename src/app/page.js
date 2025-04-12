@@ -38,8 +38,9 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0d1b2a] to-[#1b263b] text-white flex-col p-10">
-      <div className="md:w-1/2 w-full  text-center mb-8 flex justify-between border rounded-lg p-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#0d1b2a] to-[#1b263b] text-white p-10 flex justify-center">
+      <div>
+      <div className=" min-w-[300px] md:min-w-[500px] text-center mb-8 flex justify-between border rounded-lg p-6">
         <div className="flex justify-center items-center">
           <p>
         <h1 className="text-2xl font-bold text-left leading-2">ROCK </h1>
@@ -55,8 +56,8 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      <div className=" w-60 h-60 absolute">
+      <div className="relative flex justify-center">
+      <div className=" w-80 h-60 relative">
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2">
           <Button onClick={() => handleChoice('paper')} className="bg-[#fafafa] w-25 h-25 rounded-full text-5xl border border-[12px] border-[#5671f5]">✋</Button>
         </div>
@@ -67,8 +68,10 @@ export default function Home() {
           <Button onClick={() => handleChoice('scissors')} className="bg-[#fafafa] w-25 h-25 rounded-full text-5xl border border-[12px] border-[#eca922]">✌️</Button>
         </div>
       </div>
+      </div>
 
       <button className="absolute bottom-4 md:right-4 right-1/2 border px-4 py-2 rounded-md text-sm">RULES</button>
+    </div>
     </div>
   );
 }
