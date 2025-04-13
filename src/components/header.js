@@ -1,15 +1,22 @@
-import React from 'react'
+// components/Header.js
+'use client';
 
-const Header = () => {
+export default function Header({ score }) {
   return (
-        <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold">ROCK PAPER SCISSORS</h1>
-        <div className="mt-2 bg-white text-black px-4 py-2 rounded-md inline-block">
-          <span className="text-xs block text-blue-500">SCORE</span>
+    <div className="min-w-[300px] md:min-w-[500px] text-center mb-8 flex justify-between border rounded-lg p-6">
+      <div className="flex justify-center items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-left leading-2">ROCK </h1>
+          <h1 className="text-2xl font-bold text-left"> PAPER </h1>
+          <h1 className="text-2xl font-bold text-left leading-2"> SCISSORS</h1>
+        </div>
+      </div>
+      <div className="bg-white text-black px-6 rounded-md flex justify-center items-center">
+        <div className="py-4">
+          <span className="text-xs block text-black font-bold">SCORE</span>
           <span className="text-2xl font-bold">{score}</span>
         </div>
-      </div> 
-  )
+      </div>
+    </div>
+  );
 }
-
-export default Header;
