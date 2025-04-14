@@ -51,7 +51,7 @@ function ResultInner() {
       <div>
         {/* <Header score={score} /> */}
         {/* <Header score={score} /> */}
-        <Hand />
+        <Hand score={score} />
 
         <div className="relative flex justify-center gap-10 mt-10">
           <div className="flex flex-col items-center">
