@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from "next/image";
 import scissors from '@/assets/images/icon-scissors.svg';
@@ -27,7 +28,7 @@ const getResult = (player, computer) => {
   return 'lose';
 };
 
-export default function Result() {
+function ResultInner() {
   const [score, setScore] = useState(10);
   const searchParams = useSearchParams();
   const playerChoice = searchParams.get('player');
@@ -83,5 +84,13 @@ export default function Result() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function Result() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResultInner />
+    </Suspense>
   );
 }
