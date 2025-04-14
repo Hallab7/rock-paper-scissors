@@ -6,7 +6,7 @@ import Image from "next/image";
 import scissors from '@/assets/images/icon-scissors.svg';
 import paper from '@/assets/images/icon-paper.svg';
 import rock from '@/assets/images/icon-rock.svg';
-// import Header from "../../components/Header";
+import Header from "../../components/Header";
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -47,7 +47,7 @@ function ResultInner() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0d1b2a] to-[#1b263b] text-white p-10 flex justify-center">
       <div>
-        {/* <Header score={score} /> */}
+        <Header score={score} />
 
         <div className="relative flex justify-center gap-10 mt-10">
           <div className="flex flex-col items-center">
