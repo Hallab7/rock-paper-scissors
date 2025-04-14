@@ -7,6 +7,7 @@ import paper from '@/assets/images/icon-paper.svg';
 import rock from '@/assets/images/icon-rock.svg';
 // import Header from "@/components/Header";
 import { useState, useEffect } from 'react';
+import Hand from '@/components/hand';
 
 const choices = [
   { name: "rock", image: rock, border: "border-[#de3a5a]" },
@@ -52,6 +53,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0d1b2a] to-[#1b263b] text-white p-10">
       {/* <Header score={score} /> */}
+      <Hand score={score} />
 
       <div className="grid place-items-center mt-20">
   <div className="relative w-[350px] h-[318.6px]">
