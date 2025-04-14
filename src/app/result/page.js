@@ -5,7 +5,7 @@ import Image from "next/image";
 import scissors from '@/assets/images/icon-scissors.svg';
 import paper from '@/assets/images/icon-paper.svg';
 import rock from '@/assets/images/icon-rock.svg';
-import Header from "@/components/Header";
+import Header from "../../components/Header";
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
