@@ -9,7 +9,8 @@ import rock from '@/assets/images/icon-rock.svg';
 // import Header from "@/components/Header";
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import Header from '@/components/Header';
+import Hand from '@/components/hand';
+// import Header from '@/components/Header';
 
 const choiceImages = {
   rock,
@@ -49,8 +50,8 @@ function ResultInner() {
     <div className="min-h-screen bg-gradient-to-b from-[#0d1b2a] to-[#1b263b] text-white p-10 flex justify-center">
       <div>
         {/* <Header score={score} /> */}
-        <Header score={score} />
-        
+        {/* <Header score={score} /> */}
+        <Hand />
 
         <div className="relative flex justify-center gap-10 mt-10">
           <div className="flex flex-col items-center">
