@@ -10,6 +10,7 @@ import rock from '@/assets/images/icon-rock.svg';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Hand from '@/components/hand';
+import Link from 'next/link';
 // import Header from '@/components/Header';
 
 const choiceImages = {
@@ -46,8 +47,24 @@ function ResultInner() {
     localStorage.setItem('score', score);
   }, [score]);
 
+  const getColor = (result) => {
+    switch (result) {
+      case 'win':
+        return 'text-green-500';
+      case 'lose':
+        return 'text-red-500';
+      case 'draw':
+        return 'text-black';
+      default:
+        return 'text-gray-500';
+    }
+  };
+  
+  const colorClass = getColor(result);
+  
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0d1b2a] to-[#1b263b] text-white p-10 flex justify-center">
+    <div className="min-h-screen bg-gradient-to-b from-[#0d1b2a] to-[#1b263b] text-white p-10">
       <div>
         {/* <Header score={score} /> */}
         {/* <Header score={score} /> */}
@@ -82,6 +99,14 @@ function ResultInner() {
         <div className="text-center mt-8">
           <p className="text-2xl capitalize">{result === 'draw' ? "It's a draw" : `You ${result}`}</p>
         </div>
+        <div className="flex justify-center mt-10">
+          <Link href="/">
+          <Button className={`bg-white text-${colorClass} px-4 py-2 rounded-md text-sm`}>
+              PLAY AGAIN
+            </Button>
+          </Link>
+          </div>
+
 
         <button className="absolute bottom-4 md:right-4 right-1/2 border px-4 py-2 rounded-md text-sm">
           RULES
