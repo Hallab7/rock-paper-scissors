@@ -86,9 +86,9 @@ export default function Home() {
 </div>
 
 
-      <button className="absolute bottom-4 md:right-4 right-1/2 border px-4 py-2 rounded-md text-sm">
-        RULES
-      </button>
+          <button className="absolute bottom-4 left-1/2 transform -translate-x-1/2 md:left-auto       md:right-4 border px-4 py-2 rounded-md text-sm">
+          RULES
+          </button>
     </div>
   );
 }
