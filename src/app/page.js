@@ -33,10 +33,10 @@ export default function Home() {
 
   const handleChoice = (playerChoice) => {
     const computerChoice = choices[Math.floor(Math.random() * 3)].name;
-    const result = getResult(playerChoice, computerChoice);
+    // const result = getResult(playerChoice, computerChoice);
 
-    if (result === 'win') setScore(prev => prev + 1);
-    else if (result === 'lose') setScore(prev => prev - 1);
+    // if (result === 'win') setScore(prev => prev + 1);
+    // else if (result === 'lose') setScore(prev => prev - 1);
 
     router.push(`/result?player=${playerChoice}&computer=${computerChoice}`);
   };
@@ -51,7 +51,7 @@ export default function Home() {
   }, [score]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0d1b2a] to-[#1b263b] text-white p-10">
+    <div className="min-h-screen bg-gradient-to-b from-[#1f3756] to-[#141539] text-white p-10">
       {/* <Header score={score} /> */}
       <Hand score={score} />
 
@@ -83,7 +83,7 @@ export default function Home() {
       );
     })}
   </div>
-</div>
+    </div>
 
 
           <button className="absolute bottom-4 left-1/2 transform -translate-x-1/2 md:left-auto       md:right-4 border px-4 py-2 rounded-md text-sm">
