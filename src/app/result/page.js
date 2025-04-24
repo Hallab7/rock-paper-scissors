@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Hand from '@/components/hand';
 import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const choiceImages = {
   rock,
@@ -37,7 +38,6 @@ function ResultInner() {
   const computerChoice = searchParams.get('computer');
   const result = getResult(playerChoice, computerChoice);
 
-  // Load score from localStorage
   useEffect(() => {
     const savedScore = localStorage.getItem('score');
     if (savedScore) {
@@ -47,12 +47,10 @@ function ResultInner() {
     }
   }, []);
 
-  // Save updated score to localStorage
   useEffect(() => {
     localStorage.setItem('score', score);
   }, [score]);
 
-  // Update score based on result and handle game over
   const getUpdatedScore = (prevScore, result) => {
     if (result === 'win') return prevScore + 1;
     if (result === 'lose') {
@@ -85,51 +83,85 @@ function ResultInner() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1f3756] to-[#141539] text-white p-10 relative">
-
       <Hand score={score} />
 
       <div className="relative flex justify-center gap-10 mt-10">
-        <div className="flex flex-col items-center">
-          <span className="mb-2 text-base uppercase font-bold">You Picked</span>
-          <div className="bg-[#fafafa] w-32 h-32 rounded-full border-[12px] flex justify-center items-center border-[#5671f5]">
-            <Image src={choiceImages[playerChoice]} alt={playerChoice} className="w-[50px] h-[50px]" />
-          </div>
-        </div>
+        {['You Picked', 'Computer Picked'].map((label, idx) => {
+          const choice = idx === 0 ? playerChoice : computerChoice;
+          const borderColor = idx === 0 ? 'border-[#5671f5]' : 'border-[#eca922]';
 
-        <div className="flex flex-col items-center">
-          <span className="mb-2 text-base uppercase font-bold">Computer Picked</span>
-          <div className="bg-[#fafafa] w-32 h-32 rounded-full border-[12px] flex justify-center items-center border-[#eca922]">
-            <Image src={choiceImages[computerChoice]} alt={computerChoice} className="w-[50px] h-[50px]" />
-          </div>
-        </div>
+          return (
+            <motion.div
+              key={label}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: idx * 0.2 }}
+              className="flex flex-col items-center"
+            >
+              <span className="mb-2 text-base uppercase font-bold">{label}</span>
+              <div className={`bg-[#fafafa] w-32 h-32 rounded-full border-[12px] flex justify-center items-center ${borderColor}`}>
+                <Image src={choiceImages[choice]} alt={choice} className="w-[50px] h-[50px]" />
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
-      <div className="text-center mt-8">
-        <p className="text-2xl capitalize font-bold">{result === 'draw' ? "YOU DRAW" : `YOU ${result.toUpperCase()}`}</p>
-      </div>
+      <motion.div
+        className="text-center mt-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <p className="text-2xl capitalize font-bold">
+          {result === 'draw' ? 'YOU DRAW' : `YOU ${result.toUpperCase()}`}
+        </p>
+      </motion.div>
 
-      <div className="flex justify-center mt-10">
+      <motion.div
+        className="flex justify-center mt-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+      >
         <Link href="/">
           <Button className={`bg-white ${colorClass} px-8 py-2 font-bold rounded-md text-base cursor-pointer`}>
             PLAY AGAIN
           </Button>
         </Link>
-      </div>
+      </motion.div>
 
-      <button className="absolute bottom-4 left-1/2 transform -translate-x-1/2 md:left-auto md:right-4 border px-4 py-2 rounded-md text-sm">
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="absolute bottom-4 left-1/2 transform -translate-x-1/2 md:left-auto md:right-4 border px-4 py-2 rounded-md text-sm"
+      >
         RULES
-      </button>
+      </motion.button>
 
-      {/* Game Over Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className="bg-white text-black p-6 rounded-xl text-center w-[300px]">
-            <h2 className="text-xl font-bold mb-4">Game Over</h2>
-            <p className="mb-4">Your score has reached 0. Restarting from 10...</p>
-            <Button onClick={handleModalClose}>OK</Button>
-          </div>
-        </div>
-      )}
+      {/* Animated Game Over Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white text-black p-6 rounded-xl text-center w-[300px]"
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.7, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h2 className="text-xl font-bold mb-4">Game Over</h2>
+              <p className="mb-4">Your score has reached 0. Restarting from 10...</p>
+              <Button onClick={handleModalClose}>OK</Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
