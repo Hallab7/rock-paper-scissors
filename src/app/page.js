@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
-import scissors from '@/assets/images/icon-scissors.svg';
-import paper from '@/assets/images/icon-paper.svg';
-import rock from '@/assets/images/icon-rock.svg';
-import { useState, useEffect } from 'react';
-import Hand from '@/components/hand';
+import scissors from '../assets/images/icon-scissors.svg';
+import paper from '../assets/images/icon-paper.svg';
+import rock from '../assets/images/icon-rock.svg';
+import Hand from '../components/hand';
 import { motion } from 'framer-motion';
+import { getToken } from "../lib/auth";
 
 const choices = [
   { name: "rock", image: rock, border: "border-[#de3a5a]" },
@@ -18,6 +19,14 @@ const choices = [
 export default function Home() {
   const [score, setScore] = useState(10);
   const router = useRouter();
+
+  // ✅ Authentication check
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      router.push("/login");
+    }
+  }, [router]);
 
   const getResult = (player, computer) => {
     if (player === computer) return 'draw';

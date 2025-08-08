@@ -17,7 +17,7 @@ export const metadata = {
   description: "A simple rock paper scissors game",
 };
 
-import { ScoreProvider } from '@/context/ScoreContext';
+import { ScoreProvider } from '../context/ScoreContext';
 
 export default function RootLayout({ children }) {
   return (
