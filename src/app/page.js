@@ -7,9 +7,11 @@ import scissors from '../assets/images/icon-scissors.svg';
 import paper from '../assets/images/icon-paper.svg';
 import rock from '../assets/images/icon-rock.svg';
 import Hand from '../components/hand';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { getCurrentUser, logout } from "../utils/auth-client";
+
+import { MdLogout } from "react-icons/md";
 
 const choices = [
   { name: "rock", image: rock, border: "border-[#de3a5a]" },
@@ -21,6 +23,7 @@ export default function Home() {
   const [score, setScore] = useState(10);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -30,7 +33,7 @@ export default function Home() {
           router.push("/login");
         } else {
           setUser(user);
-          setScore(user.score ?? 10); // Initialize score from backend
+          setScore(user.score ?? 10);
           setLoading(false);
         }
       })
@@ -39,9 +42,8 @@ export default function Home() {
       });
   }, [router]);
 
-  // Whenever score changes, update backend immediately
   useEffect(() => {
-    if (!user) return; // no update if user not loaded yet
+    if (!user) return;
 
     const updateScoreBackend = async () => {
       try {
@@ -49,7 +51,7 @@ export default function Home() {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ score }),
-          credentials: "include", // send cookies
+          credentials: "include",
         });
       } catch (err) {
         console.error("Failed to update score:", err);
@@ -59,7 +61,8 @@ export default function Home() {
     updateScoreBackend();
   }, [score, user]);
 
-  const handleLogout = async () => {
+  const handleLogoutConfirm = async () => {
+    setShowLogoutModal(false);
     await logout();
     router.push("/login");
   };
@@ -70,24 +73,27 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-[#1f3756] to-[#141539] text-white p-10 relative">
 
       {/* Top left header */}
-      <header className="flex items-center space-x-4 absolute top-4 left-4">
-        {/* Logout Button */}
+      <header className="flex items-center space-x-4 justify-between mb-6">
+
+        {/* Logout Button with icon only on mobile, icon+text on md+ */}
         <button
-          onClick={handleLogout}
-          className="px-3 py-1 border border-white rounded hover:bg-white hover:text-[#1f3756] transition"
+          onClick={() => setShowLogoutModal(true)}
+          className="flex items-center space-x-2 px-3 py-1 border border-white cursor-pointer rounded hover:bg-white hover:text-[#1f3756] transition"
           aria-label="Logout"
         >
-          Logout
+          <MdLogout size={20} />
+          <span className="hidden md:inline">Logout</span>
         </button>
 
         {/* Avatar and Welcome */}
         <div className="flex items-center space-x-2">
+          <span className="hidden md:inline text-white font-semibold">
+            Welcome, {user.username.charAt(0).toUpperCase() + user.username.slice(1)}!
+          </span>
+
           <div className="w-10 h-10 rounded-full bg-white text-[#1f3756] flex items-center justify-center font-bold text-lg select-none">
             {user.username.charAt(0).toUpperCase()}
           </div>
-          <span className="text-white font-semibold">
-            Welcome, {user.username}!
-          </span>
         </div>
       </header>
 
@@ -135,6 +141,44 @@ export default function Home() {
       >
         RULES
       </motion.button>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white text-black p-6 rounded-xl text-center w-[300px]"
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.7, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h2 className="text-xl font-bold mb-4">Confirm Logout</h2>
+              <p className="mb-6">Are you sure you want to logout?</p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => setShowLogoutModal(false)}
+                  className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLogoutConfirm}
+                  className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white transition"
+                >
+                  Confirm
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }

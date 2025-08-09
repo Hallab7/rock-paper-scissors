@@ -28,7 +28,7 @@ const getResult = (player, computer) => {
 };
 
 function ResultInner() {
-  const [score, setScore] = useState(10);
+  const [score, setScore] = useState("\u221E");
   const [showModal, setShowModal] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -38,6 +38,18 @@ function ResultInner() {
   const playerChoice = searchParams.get("player");
   const computerChoice = searchParams.get("computer");
   const result = getResult(playerChoice, computerChoice);
+
+  // BlinkingDots component for inline score loader
+function BlinkingDots() {
+  const [dots, setDots] = useState("");
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+  return <span className="inline-block w-6">{dots}</span>;
+}
 
   // Fetch user and score from backend on mount
   useEffect(() => {
@@ -119,7 +131,7 @@ function ResultInner() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  // if (loading) return <div>Loading...</div>;
 
   const colorClass = getColor(result);
 

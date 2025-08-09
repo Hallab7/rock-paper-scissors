@@ -3,7 +3,7 @@
 
 export default function Header({ score }) {
   return (
-    <div className="min-w-[300px] md:min-w-[500px] text-center mb-8 flex justify-between border rounded-lg p-6">
+    <div className="min-w-[300px] md:min-w-[500px] text-center mt-8 mb-8 flex justify-between border rounded-lg p-6">
       <div className="flex justify-center items-center">
         <div>
           <h1 className="text-2xl font-bold text-left leading-2">ROCK </h1>
