@@ -1,6 +1,7 @@
 // app/api/auth/me/route.js
+
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
+import clientPromise from "../../../../lib/mongodb";
 import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 

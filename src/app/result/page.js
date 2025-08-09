@@ -1,83 +1,125 @@
-'use client';
+"use client";
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import scissors from '@/assets/images/icon-scissors.svg';
-import paper from '@/assets/images/icon-paper.svg';
-import rock from '@/assets/images/icon-rock.svg';
-import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import Hand from '@/components/hand';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import scissors from '../../assets/images/icon-scissors.svg';
+import paper from '../../assets/images/icon-paper.svg';
+import rock from '../../assets/images/icon-rock.svg';
+import { Button } from '../../components/ui/button';
+import Hand from '../../components/hand';
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
-const choiceImages = {
-  rock,
-  paper,
-  scissors,
-};
+import { getCurrentUser } from "../../utils/auth-client";
+
+const choiceImages = { rock, paper, scissors };
 
 const getResult = (player, computer) => {
-  if (player === computer) return 'draw';
+  if (player === computer) return "draw";
   if (
-    (player === 'rock' && computer === 'scissors') ||
-    (player === 'paper' && computer === 'rock') ||
-    (player === 'scissors' && computer === 'paper')
+    (player === "rock" && computer === "scissors") ||
+    (player === "paper" && computer === "rock") ||
+    (player === "scissors" && computer === "paper")
   ) {
-    return 'win';
+    return "win";
   }
-  return 'lose';
+  return "lose";
 };
 
 function ResultInner() {
   const [score, setScore] = useState(10);
   const [showModal, setShowModal] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
-  const playerChoice = searchParams.get('player');
-  const computerChoice = searchParams.get('computer');
+  const router = useRouter();
+
+  const playerChoice = searchParams.get("player");
+  const computerChoice = searchParams.get("computer");
   const result = getResult(playerChoice, computerChoice);
 
+  // Fetch user and score from backend on mount
   useEffect(() => {
-    const savedScore = localStorage.getItem('score');
-    if (savedScore) {
-      const parsedScore = Number(savedScore);
-      const updatedScore = getUpdatedScore(parsedScore, result);
-      setScore(updatedScore);
-    }
-  }, []);
+    getCurrentUser()
+      .then((user) => {
+        if (!user) {
+          router.push("/login");
+        } else {
+          setUser(user);
+          setScore(user.score ?? 10);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        router.push("/login");
+      });
+  }, [router]);
 
+  // Update score based on game result after loading user
   useEffect(() => {
-    localStorage.setItem('score', score);
-  }, [score]);
+    if (loading) return;
 
-  const getUpdatedScore = (prevScore, result) => {
-    if (result === 'win') return prevScore + 1;
-    if (result === 'lose') {
-      const newScore = prevScore - 1;
-      if (newScore <= 0) {
-        setShowModal(true);
-        return 0;
+    setScore((prev) => {
+      if (result === "win") return prev + 1;
+      if (result === "lose") {
+        const newScore = prev - 1;
+        if (newScore <= 0) {
+          setShowModal(true);
+          return 0;
+        }
+        return newScore;
       }
-      return newScore;
-    }
-    return prevScore;
-  };
+      return prev;
+    });
+  }, [result, loading]);
 
+  // Sync updated score to backend immediately when score or user changes
+  useEffect(() => {
+    if (!user) return;
+
+    const updateScoreBackend = async () => {
+      try {
+        await fetch("/api/auth/score", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ score }),
+          credentials: "include",
+        });
+      } catch (err) {
+        console.error("Failed to update score:", err);
+      }
+    };
+
+    updateScoreBackend();
+  }, [score, user]);
+
+  // Handle game over modal close: reset score locally and backend
   const handleModalClose = () => {
     setShowModal(false);
     setScore(10);
-    localStorage.setItem('score', '10');
+    fetch("/api/auth/score", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ score: 10 }),
+      credentials: "include",
+    }).catch((err) => console.error("Failed to reset score:", err));
   };
 
   const getColor = (result) => {
     switch (result) {
-      case 'win': return 'text-green-500';
-      case 'lose': return 'text-red-500';
-      case 'draw': return 'text-black';
-      default: return 'text-gray-500';
+      case "win":
+        return "text-green-500";
+      case "lose":
+        return "text-red-500";
+      case "draw":
+        return "text-black";
+      default:
+        return "text-gray-500";
     }
   };
+
+  if (loading) return <div>Loading...</div>;
 
   const colorClass = getColor(result);
 
@@ -86,9 +128,9 @@ function ResultInner() {
       <Hand score={score} />
 
       <div className="relative flex justify-center gap-10 mt-10">
-        {['You Picked', 'Computer Picked'].map((label, idx) => {
+        {["You Picked", "Computer Picked"].map((label, idx) => {
           const choice = idx === 0 ? playerChoice : computerChoice;
-          const borderColor = idx === 0 ? 'border-[#5671f5]' : 'border-[#eca922]';
+          const borderColor = idx === 0 ? "border-[#5671f5]" : "border-[#eca922]";
 
           return (
             <motion.div
@@ -99,8 +141,14 @@ function ResultInner() {
               className="flex flex-col items-center"
             >
               <span className="mb-2 text-base uppercase font-bold">{label}</span>
-              <div className={`bg-[#fafafa] w-32 h-32 rounded-full border-[12px] flex justify-center items-center ${borderColor}`}>
-                <Image src={choiceImages[choice]} alt={choice} className="w-[50px] h-[50px]" />
+              <div
+                className={`bg-[#fafafa] w-32 h-32 rounded-full border-[12px] flex justify-center items-center ${borderColor}`}
+              >
+                <Image
+                  src={choiceImages[choice]}
+                  alt={choice}
+                  className="w-[50px] h-[50px]"
+                />
               </div>
             </motion.div>
           );
@@ -114,7 +162,7 @@ function ResultInner() {
         transition={{ delay: 0.5 }}
       >
         <p className="text-2xl capitalize font-bold">
-          {result === 'draw' ? 'YOU DRAW' : `YOU ${result.toUpperCase()}`}
+          {result === "draw" ? "YOU DRAW" : `YOU ${result.toUpperCase()}`}
         </p>
       </motion.div>
 
@@ -125,7 +173,9 @@ function ResultInner() {
         transition={{ delay: 0.7 }}
       >
         <Link href="/">
-          <Button className={`bg-white ${colorClass} px-8 py-2 font-bold rounded-md text-base cursor-pointer`}>
+          <Button
+            className={`bg-white ${colorClass} px-8 py-2 font-bold rounded-md text-base cursor-pointer`}
+          >
             PLAY AGAIN
           </Button>
         </Link>

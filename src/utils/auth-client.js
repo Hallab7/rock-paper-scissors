@@ -1,4 +1,5 @@
 // utils/auth-client.js
+
 export async function signup({ username, email, password }) {
   const res = await fetch("/api/auth", {
     method: "POST",
@@ -40,3 +41,18 @@ export async function getCurrentUser() {
   if (!res.ok) throw new Error(data.error || "Not authenticated");
   return data.user;
 }
+
+async function checkAuth() {
+  const res = await fetch('/api/auth/me', { credentials: 'include' });
+  if (res.ok) {
+    const data = await res.json();
+    if (data.user) {
+      console.log("User is logged in:", data.user);
+    } else {
+      console.log("No valid user");
+    }
+  } else {
+    console.log("Auth check failed");
+  }
+}
+checkAuth();
