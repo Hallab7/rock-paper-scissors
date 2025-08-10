@@ -3,7 +3,8 @@
 import { NextResponse } from "next/server";
 import clientPromise from "../../../lib/mongodb";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { verify } from "jsonwebtoken";
+import { ObjectId } from "mongodb";
 
 const COOKIE_NAME = "token";
 const TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -18,6 +19,18 @@ export async function POST(req) {
 
     const { db } = await clientPromise;
 
+    function verifyToken(token) {
+      try {
+        return verify(token, process.env.JWT_SECRET);
+      } catch {
+        return null;
+      }
+    }
+
+    const token = req.cookies.get(COOKIE_NAME)?.value;
+    const decoded = token ? verifyToken(token) : null;
+    const userId = decoded?.sub;
+
     // ---------- SIGNUP ----------
     if (action === "signup") {
       const { email, username, password } = body;
@@ -25,18 +38,35 @@ export async function POST(req) {
         return NextResponse.json({ error: "Missing fields" }, { status: 400 });
       }
 
-      const existing = await db
-        .collection("users")
-        .findOne({ $or: [{ email: email.toLowerCase() }, { username }] });
+      // Check if email already exists
+const emailExists = await db.collection("users").findOne({
+  email: email.toLowerCase()
+});
 
-      if (existing) {
-        return NextResponse.json({ error: "User with that email or username already exists" }, { status: 409 });
-      }
+if (emailExists) {
+  return NextResponse.json(
+    { error: "Email already exists" },
+    { status: 409 }
+  );
+}
+
+// Check if username already exists (case-insensitive)
+const usernameExists = await db.collection("users").findOne({
+  username: { $regex: `^${username}$`, $options: "i" }
+});
+
+if (usernameExists) {
+  return NextResponse.json(
+    { error: "Username already taken" },
+    { status: 409 }
+  );
+}
+
 
       const hashed = bcrypt.hashSync(password, 10);
       const userDoc = {
         email: email.toLowerCase(),
-        username,
+        username: username.toLowerCase(),
         password: hashed,
         score: 10,
         createdAt: new Date(),
@@ -50,7 +80,11 @@ export async function POST(req) {
         score: userDoc.score,
       };
 
-      const token = jwt.sign({ sub: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
+      const token = jwt.sign(
+        { sub: user._id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
 
       const res = NextResponse.json({ user });
       res.cookies.set(COOKIE_NAME, token, {
@@ -66,13 +100,18 @@ export async function POST(req) {
     // ---------- LOGIN ----------
     if (action === "login") {
       const { email, password } = body;
-      if (!email || !password) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+      if (!email || !password)
+        return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-      const user = await db.collection("users").findOne({ email: email.toLowerCase() });
-      if (!user) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      const user = await db
+        .collection("users")
+        .findOne({ email: email.toLowerCase() });
+      if (!user)
+        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
       const isValid = bcrypt.compareSync(password, user.password);
-      if (!isValid) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      if (!isValid)
+        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
       const safeUser = {
         _id: user._id.toString(),
@@ -81,7 +120,11 @@ export async function POST(req) {
         score: user.score ?? 10,
       };
 
-      const token = jwt.sign({ sub: safeUser._id, email: safeUser.email }, process.env.JWT_SECRET, { expiresIn: "7d" });
+      const token = jwt.sign(
+        { sub: safeUser._id, email: safeUser.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
       const res = NextResponse.json({ user: safeUser });
       res.cookies.set(COOKIE_NAME, token, {
         httpOnly: true,
@@ -93,17 +136,87 @@ export async function POST(req) {
       return res;
     }
 
+    // ---------- EDIT PROFILE ----------
+    if (action === "edit-profile") {
+      if (!userId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      const { username, avatarUrl } = body;
+      if (!username) {
+        return NextResponse.json(
+          { error: "Username required" },
+          { status: 400 }
+        );
+      }
+
+      const existing = await db.collection("users").findOne({
+        username: { $regex: `^${username}$`, $options: "i" },
+        _id: { $ne: new ObjectId(userId) },
+      });
+
+      if (existing) {
+        return NextResponse.json(
+          { error: "Username already taken" },
+          { status: 409 }
+        );
+      }
+
+      const updateDoc = { username: username.toLowerCase() };
+      if (avatarUrl !== undefined) updateDoc.avatarUrl = avatarUrl;
+
+      await db.collection("users").updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: updateDoc }
+      );
+
+      const updatedUser = await db
+        .collection("users")
+        .findOne({ _id: new ObjectId(userId) });
+
+      return NextResponse.json({
+        user: {
+          _id: updatedUser._id.toString(),
+          username: updatedUser.username,
+          avatarUrl: updatedUser.avatarUrl,
+          score: updatedUser.score,
+        },
+      });
+    }
+
+    // ---------- DELETE ACCOUNT ----------
+    if (action === "delete-account") {
+      if (!userId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      await db.collection("users").deleteOne({ _id: new ObjectId(userId) });
+
+      const res = NextResponse.json({ ok: true, message: "Account deleted" });
+      res.cookies.set(COOKIE_NAME, "", {
+        httpOnly: true,
+        path: "/",
+        maxAge: 0,
+      });
+      return res;
+    }
+
     // ---------- LOGOUT ----------
     if (action === "logout") {
       const res = NextResponse.json({ ok: true });
-      // clear cookie
       res.cookies.set(COOKIE_NAME, "", { httpOnly: true, path: "/", maxAge: 0 });
       return res;
     }
 
-    return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Unsupported action" },
+      { status: 400 }
+    );
   } catch (err) {
     console.error("Auth error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
