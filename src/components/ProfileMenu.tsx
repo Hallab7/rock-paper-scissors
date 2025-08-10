@@ -110,7 +110,7 @@ export default function ProfileMenu({
       />
 
       <motion.div
-        className="fixed top-0 right-0 z-50 bg-white text-black rounded-lg shadow-lg p-6 w-full h-full min-h-[100vh]"
+        className="fixed top-0 right-0 z-50 bg-white text-black rounded-lg shadow-lg p-6 w-full h-full min-h-[100vh] overflow-y-auto"
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
@@ -174,7 +174,7 @@ export default function ProfileMenu({
           {activeTab === "history" && <p>Game history and match records placeholder</p>}
 
           {activeTab === "settings" && (
-            <p>Settings placeholder (sound, notifications, language, themes)</p>
+            <p>(sound, notifications,  dark mode, change change password)</p> 
           )}
 
           {activeTab === "leaderboard" && <p>Leaderboard placeholder (top players and ranks)</p>}
