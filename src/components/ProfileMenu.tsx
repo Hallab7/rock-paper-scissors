@@ -285,7 +285,7 @@ export default function ProfileMenu({
           ))}
         </nav>
 
-        <div className="border-t border-gray-300 pt-4 max-h-[60vh] overflow-auto">
+        <div className="border-t border-gray-300 pt-4  overflow-auto">
           {error && <p className="mb-2 text-red-600">{error}</p>}
 
           {activeTab === "view" && <ViewProfile user={user} />}
