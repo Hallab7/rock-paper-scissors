@@ -235,16 +235,16 @@ export default function ProfileMenu({
     <AnimatePresence>
       {/* backdrop */}
       <motion.div
-        className="fixed inset-0 bg-opacity-40 z-40"
+        className="fixed inset-0  z-40 h-screen bg-white "
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={closeAction}
+        
       />
 
       {/* panel */}
       <motion.div
-        className="fixed top-16 right-4 z-50 bg-white text-black rounded-lg shadow-lg p-6 w-80 max-h-[80vh] overflow-y-auto"
+        className="fixed top-0 right-0 z-50 bg-white text-black   p-6 w-full max-h-[80vh] overflow-y-auto"
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
