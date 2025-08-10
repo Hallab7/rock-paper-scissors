@@ -184,6 +184,48 @@ if (usernameExists) {
       });
     }
 
+    // ---------- CHANGE PASSWORD ----------
+if (action === "change-password") {
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { oldPassword, newPassword } = body;
+  if (!oldPassword || !newPassword) {
+    return NextResponse.json(
+      { error: "Old and new passwords are required" },
+      { status: 400 }
+    );
+  }
+
+  // Fetch user from DB
+  const user = await db.collection("users").findOne({
+    _id: new ObjectId(userId),
+  });
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  // Verify old password
+  const isMatch = bcrypt.compareSync(oldPassword, user.password);
+  if (!isMatch) {
+    return NextResponse.json({ error: "Old password is incorrect" }, { status: 401 });
+  }
+
+  // Hash new password
+  const hashed = bcrypt.hashSync(newPassword, 10);
+
+  // Update in DB
+  await db.collection("users").updateOne(
+    { _id: new ObjectId(userId) },
+    { $set: { password: hashed } }
+  );
+
+  return NextResponse.json({ ok: true, message: "Password updated successfully" });
+}
+
+
     // ---------- DELETE ACCOUNT ----------
     if (action === "delete-account") {
       if (!userId) {

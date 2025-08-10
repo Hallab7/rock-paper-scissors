@@ -11,7 +11,7 @@ import {
   MdHistory,
   MdSettings,
   MdLeaderboard,
-  MdClose
+  MdArrowBack
 } from "react-icons/md";
 
 async function updateProfileAPI(newName, newAvatarUrl) {
@@ -110,18 +110,25 @@ export default function ProfileMenu({
       />
 
       <motion.div
-        className="fixed top-16 right-4 z-50 bg-white text-black rounded-lg shadow-lg p-6 w-80 max-h-[80vh] overflow-y-auto"
+        className="fixed top-0 right-0 z-50 bg-white text-black rounded-lg shadow-lg p-6 w-full h-full min-h-[100vh]"
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
         transition={{ duration: 0.3 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Profile Menu</h2>
+        <div className="flex  mb-4 items-center">
+          <div>
           <button onClick={closeAction} className="text-gray-500 hover:text-gray-700 cursor-pointer">
-            <MdClose size={24} />
+            <MdArrowBack size={24} />
           </button>
+          </div>
+          <div className="flex items-center justify-center mb-4 w-full">
+          <h2 className="text-xl font-semibold ">Profile Menu</h2>
+          </div>
+          
+          
+          
         </div>
 
         <nav className="mb-4 flex flex-col space-y-2">
