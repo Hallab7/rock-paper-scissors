@@ -244,7 +244,7 @@ export default function ProfileMenu({
 
       {/* panel */}
       <motion.div
-        className="fixed top-0 right-0 z-50 bg-white text-black rounded-lg shadow-lg p-6 w-full h-full min-h-[100vh] overflow-y-auto"
+        className="fixed top-16 right-4 z-50 bg-white text-black rounded-lg shadow-lg p-6 w-80 max-h-[80vh] overflow-y-auto"
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
