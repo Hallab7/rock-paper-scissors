@@ -31,7 +31,7 @@ export default function Home() {
     getCurrentUser()
       .then((user) => {
         if (!user) {
-          router.push("/login");
+          router.push("/landing-page");
         } else {
           setUser(user);
           setScore(user.score ?? 10);
@@ -39,7 +39,7 @@ export default function Home() {
         }
       })
       .catch(() => {
-        router.push("/login");
+        router.push("/landing-page");
       });
   }, [router]);
 
@@ -65,7 +65,7 @@ export default function Home() {
   const handleLogoutConfirm = async () => {
     setShowLogoutModal(false);
     await logout();
-    router.push("/login");
+    router.push("/landing-page");
   };
 
   const handleUpdateProfile = (newName, newAvatarUrl) => {
@@ -77,7 +77,7 @@ export default function Home() {
   };
 
   const handleDeleteAccount = () => {
-    router.push("/login");
+    router.push("/landing-page");
   };
 
   if (loading) return null;

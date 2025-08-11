@@ -17,13 +17,13 @@ export async function middleware(req) {
 
   if (!token && ["/", "/game", "/multiplayer", "/result"].includes(pathname)) {
     console.log("No token and protected route, redirecting to login");
-    return NextResponse.redirect(new URL("/login", req.url));
+    return NextResponse.redirect(new URL("/landing-page", req.url));
   }
 
   if (token) {
     if (!process.env.JWT_SECRET) {
       console.error("JWT_SECRET not set in environment");
-      return NextResponse.redirect(new URL("/login", req.url));
+      return NextResponse.redirect(new URL("/landing-page", req.url));
     }
 
     try {
@@ -34,7 +34,7 @@ export async function middleware(req) {
       return NextResponse.next();
     } catch (err) {
       console.log("Invalid token, redirecting to login", err.message);
-      return NextResponse.redirect(new URL("/login", req.url));
+      return NextResponse.redirect(new URL("/landing-page", req.url));
     }
   }
 

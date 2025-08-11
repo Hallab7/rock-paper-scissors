@@ -184,13 +184,14 @@ function BlinkingDots() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
       >
-        <Link href="/">
+        
           <Button
             className={`bg-white ${colorClass} px-8 py-2 font-bold rounded-md text-base cursor-pointer`}
+            onClick={() => router.push("/")}
           >
             PLAY AGAIN
           </Button>
-        </Link>
+        
       </motion.div>
 
       <motion.button
