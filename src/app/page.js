@@ -8,7 +8,6 @@ import paper from '../assets/images/icon-paper.svg';
 import rock from '../assets/images/icon-rock.svg';
 import Hand from '../components/hand';
 import { motion, AnimatePresence } from "framer-motion";
-import { MdLogout } from "react-icons/md";
 
 import { getCurrentUser, logout } from "../utils/auth-client";
 import ProfileMenu from "../components/ProfileMenu";
@@ -23,7 +22,7 @@ export default function Home() {
   const [score, setScore] = useState(10);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  // const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const router = useRouter();
 
@@ -87,21 +86,17 @@ export default function Home() {
 
       {/* Top left header */}
       <header className="flex items-center space-x-4 justify-between mb-6">
-        {/* Logout Button */}
-        <button
-          onClick={() => setShowLogoutModal(true)}
-          className="flex items-center space-x-2 px-3 py-1 border border-white cursor-pointer rounded hover:bg-white hover:text-[#1f3756] transition"
-          aria-label="Logout"
-        >
-          <MdLogout size={20} />
-          <span className="hidden md:inline">Logout</span>
-        </button>
-
-        {/* Avatar and Welcome */}
-        <div className="flex items-center space-x-2">
-          <span className="hidden md:inline text-white font-semibold">
-            Welcome, {user.username.charAt(0).toUpperCase() + user.username.slice(1)}!
+        {/* Welcome */}
+        <div>
+          <span className="inline text-white font-semibold">
+            Welcome Back, {user.username.charAt(0).toUpperCase() + user.username.slice(1)}!
           </span>
+        </div>
+        
+
+        {/* Avatar  */}
+        <div className="flex items-center space-x-2">
+          
 
           <div
   className="w-10 h-10 rounded-full overflow-hidden cursor-pointer flex items-center justify-center font-bold text-lg select-none bg-white text-[#1f3756]"
@@ -169,43 +164,6 @@ export default function Home() {
       >
         RULES
       </motion.button>
-
-      {/* Logout Confirmation Modal */}
-      <AnimatePresence>
-        {showLogoutModal && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="bg-white text-black p-6 rounded-xl text-center w-[300px]"
-              initial={{ scale: 0.7, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.7, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <h2 className="text-xl font-bold mb-4">Confirm Logout</h2>
-              <p className="mb-6">Are you sure you want to logout?</p>
-              <div className="flex justify-center gap-4">
-                <button
-                  onClick={() => setShowLogoutModal(false)}
-                  className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleLogoutConfirm}
-                  className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white transition"
-                >
-                  Confirm
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Profile Menu */}
       <AnimatePresence>
