@@ -8,23 +8,50 @@ import paper from '../assets/images/icon-paper.svg';
 import rock from '../assets/images/icon-rock.svg';
 import Hand from '../components/hand';
 import { motion, AnimatePresence } from "framer-motion";
+import { MdCheck } from "react-icons/md";
+import { MdLogout } from "react-icons/md";
+import GameLoadingScreen from "../components/LoadingState";
 
 import { getCurrentUser, logout } from "../utils/auth-client";
 import ProfileMenu from "../components/ProfileMenu";
 
-const choices = [
-  { name: "rock", image: rock, border: "border-[#de3a5a]" },
-  { name: "paper", image: paper, border: "border-[#5671f5]" },
-  { name: "scissors", image: scissors, border: "border-[#eca922]" },
-];
+
 
 export default function Home() {
   const [score, setScore] = useState(10);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  // const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const router = useRouter();
+  const [changeLoadingMessage, setChangeLoadingMessage] = useState("");
+
+  const choices = [
+  { name: "rock", image: rock, border: "border-[#de3a5a]" },
+  { name: "paper", image: paper, border: "border-[#5671f5]" },
+  { name: "scissors", image: scissors, border: "border-[#eca922]" },
+];
+
+  useEffect(() => {
+      const prevPath = sessionStorage.getItem("previousPath");
+
+      if (prevPath === "/login") {
+        setChangeLoadingMessage(<div className="text-center">
+        <p>Log in</p>
+        Successful✅
+        <p>
+          Please <span className="text-[#5671f5]">Wait...</span>
+        </p>
+        </div> );
+      } else {
+        setChangeLoadingMessage(
+          <>
+            Please <span className="text-[#5671f5]">Wait...</span>
+          </>
+        );
+
+      }
+    }, []);
 
   useEffect(() => {
     getCurrentUser()
@@ -79,7 +106,20 @@ export default function Home() {
     router.push("/landing-page");
   };
 
-  if (loading) return null;
+  if (loading) return (
+    <div>
+     <GameLoadingScreen
+  loadingMessage={
+    // <>
+    //   Please <span className="text-[#5671f5]">Wait...</span>
+    // </>
+    changeLoadingMessage
+  }
+/>
+
+    </div>
+
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1f3756] to-[#141539] text-white p-10 relative">

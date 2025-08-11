@@ -12,6 +12,7 @@ import Link from "next/link";
 import { motion, AnimatePresence, backIn } from "framer-motion";
 
 import { getCurrentUser } from "../../utils/auth-client";
+import GameLoadingScreen from "../../components/LoadingState";
 
 const choiceImages = { rock, paper, scissors };
 
@@ -131,7 +132,17 @@ function BlinkingDots() {
     }
   };
 
-  // if (loading) return <div>Loading...</div>;
+  if (loading ) return <div>
+    <GameLoadingScreen
+  loadingMessage={
+    <>
+      Please <span className="text-[#5671f5]">Wait...</span>
+    </>
+  }
+/>
+
+  </div>;
+  
 
   const colorClass = getColor(result);
 

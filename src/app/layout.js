@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./customCSS.css"
+import RouteTracker from "../components/RouteTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +24,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <ScoreProvider>{children}</ScoreProvider>
+        
+        <ScoreProvider>
+          <RouteTracker />
+          {children}
+          </ScoreProvider>
       </body>
     </html>
   );

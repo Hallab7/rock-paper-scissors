@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { login }  from "../../utils/auth-client"
 import { useRouter } from "next/navigation";
+import GameLoadingScreen from "../../components/LoadingState";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -28,6 +30,20 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div>
+        <GameLoadingScreen
+          loadingMessage={
+            <>
+              Logging <span className="text-[#5671f5]">in...</span>
+            </>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1f3756] to-[#141539] p-6">
