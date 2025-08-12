@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import Leaderboard from "./leaderboard";
+
 import {
   MdLogout,
   MdPerson,
@@ -351,7 +353,8 @@ export default function ProfileMenu({
             </div>
           )}
 
-          {activeTab === "leaderboard" && <p>Leaderboard placeholder (top players and ranks)</p>}
+          {activeTab === "leaderboard" && 
+          <Leaderboard />}
 
           {activeTab === "logout" && (
             <div className="text-center">
