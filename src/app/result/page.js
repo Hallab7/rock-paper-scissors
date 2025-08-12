@@ -132,16 +132,19 @@ function BlinkingDots() {
     }
   };
 
-  if (loading ) return <div>
-    <GameLoadingScreen
-  loadingMessage={
-    <>
-      Please <span className="text-[#5671f5]">Wait...</span>
-    </>
-  }
-/>
-
-  </div>;
+ if (loading) {
+  return (
+    <div>
+      <GameLoadingScreen
+        loadingMessage={
+          <>
+            Please <span className="text-[#5671f5]">Wait...</span>
+          </>
+        }
+      />
+    </div>
+  );
+}
   
 
   const colorClass = getColor(result);

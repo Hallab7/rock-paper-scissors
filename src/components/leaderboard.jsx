@@ -28,7 +28,7 @@ export default function Leaderboard() {
   if (loading) {
     return (
       <div className="flex justify-center items-center">
-        <p className="text-lg font-semibold animate-pulse min-h-[200px] flex items-center justify-center">
+        <p className="text-lg font-semibold animate-pulse">
           Loading leaderboard...
         </p>
       </div>

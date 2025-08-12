@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signup } from "../../utils/auth-client";
+import GameLoadingScreen from "../../components/LoadingState";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,6 +28,20 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
+
+   if (loading) {
+  return (
+    <div>
+      <GameLoadingScreen
+        loadingMessage={
+          <>
+            Please <span className="text-[#5671f5]">Wait...</span>
+          </>
+        }
+      />
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1f3756] to-[#141539] p-6">
