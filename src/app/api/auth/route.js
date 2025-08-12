@@ -68,7 +68,7 @@ if (usernameExists) {
         email: email.toLowerCase(),
         username: username.toLowerCase(),
         password: hashed,
-        score: 10,
+        score: 5,
         createdAt: new Date(),
       };
 
@@ -117,7 +117,7 @@ if (usernameExists) {
         _id: user._id.toString(),
         email: user.email,
         username: user.username,
-        score: user.score ?? 10,
+        score: user.score ?? 5,
       };
 
       const token = jwt.sign(
