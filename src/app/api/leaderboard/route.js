@@ -43,7 +43,7 @@ export async function GET(req) {
       score: user.score ?? 0,
       wins: user.wins ?? 5,
       losses: user.losses ?? 0,
-      matchedPlayed: user.matchesPlayed ?? 0,
+      matchesPlayed: user.matchesPlayed ?? 0,
       rank: index + 1,
       isCurrentUser: user._id.toString() === loggedInUserId,
     }));

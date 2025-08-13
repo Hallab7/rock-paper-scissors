@@ -88,7 +88,8 @@ const ViewProfile = ({ user }) => {
             <strong>{user?.losses || 0}</strong>
           </p>
           <p>
-            Total Games Played: <strong>{user?.matchesPlayed || 0}</strong>
+            Total Games Played: <strong>{
+user?.matchesPlayed || 0}</strong>
           </p>
         </div>
       </div>
