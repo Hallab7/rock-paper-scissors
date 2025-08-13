@@ -58,50 +58,65 @@ export default function Home() {
       }
     }, []);
 
-  useEffect(() => {
-    getCurrentUser()
-      .then((user) => {
-        if (!user) {
-          router.push("/landing-page");
-        } else {
-          setUser(user);
-          setScore(user.score ?? 5);
+  // useEffect(() => {
+  //   getCurrentUser()
+  //     .then((user) => {
+  //       if (!user) {
+  //         router.push("/landing-page");
+  //       } else {
+  //         setUser(user);
+  //         setScore(user.score ?? 5);
           
-        }
-      })
-      .catch(() => {
+  //       }
+  //     })
+  //     .catch(() => {
+  //       router.push("/landing-page");
+  //     });
+  // }, [router]);
+
+useEffect(() => {
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await fetch("/api/leaderboard");
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to fetch leaderboard");
+
+      // If the API says user is not authenticated, redirect
+      if (!data.currentUser) {
         router.push("/landing-page");
-      });
-  }, [router]);
-
- useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const res = await fetch("/api/leaderboard");
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(data.error || "Failed to fetch leaderboard");
-
-        // Set top players
-        setTopPlayers(data.topPlayers || []);
-
-        // Get current user (either in topPlayers or outside top)
-        const me =
-          data.topPlayers.find((p) => p.isCurrentUser) ||
-          data.currentUserOutsideTop ||
-          null;
-
-        setCurrentUser(me);
-        setScore(me?.score ?? 5);
-      } catch (error) {
-        console.error("Error fetching leaderboard:", error);
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    fetchLeaderboard();
-  }, []);
+      // Current user (either in top list or outside top)
+      const me =
+        data.topPlayers.find((p) => p.isCurrentUser) ||
+        data.currentUserOutsideTop ||
+        data.currentUser ||
+        null;
+
+      setCurrentUser(me);
+      setUser(me);
+      setScore(me?.score ?? 5);
+
+      // ✅ Stop loading immediately after we get the user data
+      setLoading(false);
+
+      // Continue setting leaderboard data afterwards
+      setTopPlayers(data.topPlayers || []);
+
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+      router.push("/landing-page");
+      setLoading(false);
+    }
+  };
+
+  fetchLeaderboard();
+}, [router]);
+
+
+
 
 
 
