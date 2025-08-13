@@ -32,109 +32,147 @@ export async function POST(req) {
     const userId = decoded?.sub;
 
     // ---------- SIGNUP ----------
-    if (action === "signup") {
-      const { email, username, password } = body;
-      if (!email || !username || !password) {
-        return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-      }
+   // ---------- SIGNUP ----------
+if (action === "signup") {
+  const { email, username, password } = body;
+  if (!email || !username || !password) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
 
-      // Check if email already exists
-const emailExists = await db.collection("users").findOne({
-  email: email.toLowerCase()
-});
+  // Check if email already exists
+  const emailExists = await db.collection("users").findOne({
+    email: email.toLowerCase()
+  });
 
-if (emailExists) {
-  return NextResponse.json(
-    { error: "Email already exists" },
-    { status: 409 }
+  if (emailExists) {
+    return NextResponse.json(
+      { error: "Email already exists" },
+      { status: 409 }
+    );
+  }
+
+  // Check if username already exists (case-insensitive)
+  const usernameExists = await db.collection("users").findOne({
+    username: { $regex: `^${username}$`, $options: "i" }
+  });
+
+  if (usernameExists) {
+    return NextResponse.json(
+      { error: "Username already taken" },
+      { status: 409 }
+    );
+  }
+
+  const hashed = bcrypt.hashSync(password, 10);
+
+  const userDoc = {
+    email: email.toLowerCase(),
+    username: username.toLowerCase(),
+    password: hashed,
+    score: 5,
+    matchesPlayed: 0, // 🆕 new field
+    wins: 5,           // 🆕 new field
+    losses: 0,         // 🆕 new field
+    createdAt: new Date(),
+  };
+
+  const result = await db.collection("users").insertOne(userDoc);
+
+  const user = {
+    _id: result.insertedId.toString(),
+    email: userDoc.email,
+    username: userDoc.username,
+    score: userDoc.score,
+    matchesPlayed: userDoc.matchesPlayed,
+    wins: userDoc.wins,
+    losses: userDoc.losses,
+  };
+
+  const token = jwt.sign(
+    { sub: user._id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
   );
+
+  const res = NextResponse.json({ user });
+  res.cookies.set(COOKIE_NAME, token, {
+    httpOnly: true,
+    path: "/",
+    maxAge: TOKEN_MAX_AGE,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+  return res;
 }
 
-// Check if username already exists (case-insensitive)
-const usernameExists = await db.collection("users").findOne({
-  username: { $regex: `^${username}$`, $options: "i" }
-});
-
-if (usernameExists) {
-  return NextResponse.json(
-    { error: "Username already taken" },
-    { status: 409 }
-  );
-}
-
-
-      const hashed = bcrypt.hashSync(password, 10);
-      const userDoc = {
-        email: email.toLowerCase(),
-        username: username.toLowerCase(),
-        password: hashed,
-        score: 5,
-        createdAt: new Date(),
-      };
-
-      const result = await db.collection("users").insertOne(userDoc);
-      const user = {
-        _id: result.insertedId.toString(),
-        email: userDoc.email,
-        username: userDoc.username,
-        score: userDoc.score,
-      };
-
-      const token = jwt.sign(
-        { sub: user._id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
-
-      const res = NextResponse.json({ user });
-      res.cookies.set(COOKIE_NAME, token, {
-        httpOnly: true,
-        path: "/",
-        maxAge: TOKEN_MAX_AGE,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      });
-      return res;
-    }
 
     // ---------- LOGIN ----------
-    if (action === "login") {
-      const { email, password } = body;
-      if (!email || !password)
-        return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+   if (action === "login") {
+  const { email, password } = body;
+  if (!email || !password)
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-      const user = await db
-        .collection("users")
-        .findOne({ email: email.toLowerCase() });
-      if (!user)
-        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  const user = await db
+    .collection("users")
+    .findOne({ email: email.toLowerCase() });
 
-      const isValid = bcrypt.compareSync(password, user.password);
-      if (!isValid)
-        return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
-      const safeUser = {
-        _id: user._id.toString(),
-        email: user.email,
-        username: user.username,
-        score: user.score ?? 5,
-      };
+  const isValid = bcrypt.compareSync(password, user.password);
+  if (!isValid)
+    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
 
-      const token = jwt.sign(
-        { sub: safeUser._id, email: safeUser.email },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-      );
-      const res = NextResponse.json({ user: safeUser });
-      res.cookies.set(COOKIE_NAME, token, {
-        httpOnly: true,
-        path: "/",
-        maxAge: TOKEN_MAX_AGE,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-      });
-      return res;
-    }
+  // Ensure old users have these fields
+  const matchesPlayed = user.matchesPlayed ?? 0;
+  const wins = user.wins ?? 5;
+  const losses = user.losses ?? 0;
+
+  // If any are missing in DB, update them once
+  if (
+    user.matchesPlayed === undefined ||
+    user.wins === undefined ||
+    user.losses === undefined
+  ) {
+    await db.collection("users").updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          matchesPlayed,
+          wins,
+          losses,
+        },
+      }
+    );
+  }
+
+  const safeUser = {
+    _id: user._id.toString(),
+    email: user.email,
+    username: user.username,
+    score: user.score ?? 5,
+    matchesPlayed,
+    wins,
+    losses,
+  };
+
+  const token = jwt.sign(
+    { sub: safeUser._id, email: safeUser.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  const res = NextResponse.json({ user: safeUser });
+  res.cookies.set(COOKIE_NAME, token, {
+    httpOnly: true,
+    path: "/",
+    maxAge: TOKEN_MAX_AGE,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+  });
+  return res;
+}
+
 
     // ---------- EDIT PROFILE ----------
     if (action === "edit-profile") {

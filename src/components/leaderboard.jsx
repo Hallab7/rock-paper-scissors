@@ -1,30 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 
-export default function Leaderboard() {
-  const [topPlayers, setTopPlayers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const res = await fetch("/api/leaderboard");
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(data.error || "Failed to fetch leaderboard");
-
-        setTopPlayers(data.topPlayers || []);
-        setCurrentUser(data.currentUserOutsideTop || null);
-      } catch (error) {
-        console.error("Error fetching leaderboard:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLeaderboard();
-  }, []);
-
+export default function Leaderboard({ topPlayers = [], currentUser = null, loading }) {
   if (loading) {
     return (
       <div className="flex justify-center items-center">
@@ -36,15 +12,9 @@ export default function Leaderboard() {
   }
 
   const renderRank = (rank) => {
-    if (rank === 1) {
-      return <span style={{ fontSize: "1.4rem" }}>🥇</span>;
-    }
-    if (rank === 2) {
-      return <span style={{ fontSize: "1.4rem" }}>🥈</span>;
-    }
-    if (rank === 3) {
-      return <span style={{ fontSize: "1.4rem" }}>🥉</span>; // bronze
-    }
+    if (rank === 1) return <span style={{ fontSize: "1.4rem" }}>🥇</span>;
+    if (rank === 2) return <span style={{ fontSize: "1.4rem" }}>🥈</span>;
+    if (rank === 3) return <span style={{ fontSize: "1.4rem" }}>🥉</span>;
     return rank;
   };
 
@@ -78,6 +48,9 @@ export default function Leaderboard() {
     </tr>
   );
 
+  // Check if logged-in user is already in topPlayers
+  const isUserInTop = currentUser && topPlayers.some(p => p._id === currentUser._id);
+
   return (
     <div className="p-6 bg-white/10 rounded-xl shadow-lg text-black max-w-2xl mx-auto backdrop-blur-sm">
       <h2 className="text-xl md:text-3xl font-extrabold mb-6 text-center text-black drop-shadow">
@@ -97,7 +70,8 @@ export default function Leaderboard() {
             renderPlayerRow(player, player.isCurrentUser)
           )}
 
-          {currentUser && (
+          {/* Only show currentUser row if they are NOT in top 10 */}
+          {!isUserInTop && currentUser && (
             <>
               <tr>
                 <td colSpan="3" className="text-center py-2 text-black font-bold">

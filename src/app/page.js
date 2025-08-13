@@ -18,13 +18,18 @@ import ProfileMenu from "../components/ProfileMenu";
 
 
 export default function Home() {
-  const [score, setScore] = useState(10);
+  const [score, setScore] = useState(5);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const router = useRouter();
   const [changeLoadingMessage, setChangeLoadingMessage] = useState("");
+
+   const [rank, setRank] = useState([]);
+   const [topPlayers, setTopPlayers] = useState([]);
+   const [currentUser, setCurrentUser] = useState(null);
+  
 
   const choices = [
   { name: "rock", image: rock, border: "border-[#de3a5a]" },
@@ -60,8 +65,8 @@ export default function Home() {
           router.push("/landing-page");
         } else {
           setUser(user);
-          setScore(user.score ?? 10);
-          setLoading(false);
+          setScore(user.score ?? 5);
+          
         }
       })
       .catch(() => {
@@ -88,6 +93,41 @@ export default function Home() {
     updateScoreBackend();
   }, [score, user]);
 
+
+
+ useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch("/api/leaderboard");
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || "Failed to fetch leaderboard");
+
+        // Set top players
+        setTopPlayers(data.topPlayers || []);
+
+        // Get current user (either in topPlayers or outside top)
+        const me =
+          data.topPlayers.find((p) => p.isCurrentUser) ||
+          data.currentUserOutsideTop ||
+          null;
+
+        setCurrentUser(me);
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
+
+
+
+
+
+
   const handleLogoutConfirm = async () => {
     setShowLogoutModal(false);
     await logout();
@@ -95,7 +135,12 @@ export default function Home() {
   };
 
   const handleUpdateProfile = (newName, newAvatarUrl) => {
-    setUser((u) => ({
+    // setUser((u) => ({
+    //   ...u,
+    //   username: newName,
+    //   avatarUrl: newAvatarUrl ?? u.avatarUrl,
+    // }));
+    setCurrentUser((u) => ({
       ...u,
       username: newName,
       avatarUrl: newAvatarUrl ?? u.avatarUrl,
@@ -129,7 +174,7 @@ export default function Home() {
         {/* Welcome */}
         <div>
           <span className="inline text-white font-semibold">
-            Welcome Back, {user.username.charAt(0).toUpperCase() + user.username.slice(1)}!
+            Welcome Back, {currentUser.username.charAt(0).toUpperCase() + currentUser.username.slice(1)}!
           </span>
         </div>
         
@@ -144,14 +189,14 @@ export default function Home() {
 >
   {user.avatarUrl ? (
     <Image
-      src={user.avatarUrl}
-      alt={user.username}
+      src={currentUser.avatarUrl}
+      alt={currentUser.username}
       width={40}
       height={40}
       className="object-cover w-full h-full"
     />
   ) : (
-    user.username.charAt(0).toUpperCase()
+    currentUser.username.charAt(0).toUpperCase()
   )}
 </div>
 
@@ -209,12 +254,17 @@ export default function Home() {
       <AnimatePresence>
         {showProfileMenu && (
           <ProfileMenu
-            user={user}
+          user={user}
+          rankDetails={currentUser}
           closeAction={() => setShowProfileMenu(false)}
           logoutAction={handleLogoutConfirm}
           updateProfileAction={handleUpdateProfile}
           deleteAccountAction={handleDeleteAccount}
+          currentUser={currentUser}
+            topPlayers={topPlayers}
+            leaderboardLoading= {loading}
           />
+          
         )}
       </AnimatePresence>
     </div>

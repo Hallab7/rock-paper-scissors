@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Leaderboard from "./leaderboard";
+import  ViewProfileDetails from "./ViewProfile"
 
 import {
   MdLogout,
@@ -97,10 +98,14 @@ async function changePasswordAPI(oldPassword, newPassword) {
 
 export default function ProfileMenu({
   user,
+  rankDetails,
   closeAction,
   logoutAction,
   updateProfileAction,
   deleteAccountAction,
+  currentUser,
+  topPlayers,
+  leaderboardLoading
 }) {
   // tabs + loading + errors
   const [activeTab, setActiveTab] = useState("view");
@@ -290,7 +295,7 @@ export default function ProfileMenu({
         <div className="border-t border-gray-300 pt-4  overflow-auto">
           {error && <p className="mb-2 text-red-600">{error}</p>}
 
-          {activeTab === "view" && <ViewProfile user={user} />}
+          {activeTab === "view" && <ViewProfile user={rankDetails} />}
 
           {activeTab === "edit" && (
             <EditProfileTab
@@ -354,7 +359,11 @@ export default function ProfileMenu({
           )}
 
           {activeTab === "leaderboard" && 
-          <Leaderboard />}
+          <Leaderboard
+          topPlayers={topPlayers} 
+          currentUser={currentUser} 
+          loading={leaderboardLoading}
+          />}
 
           {activeTab === "logout" && (
             <div className="text-center">
@@ -498,27 +507,8 @@ export default function ProfileMenu({
 function ViewProfile({ user }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-4">
-        {user?.avatarUrl ? (
-          <div className="w-20 h-20 rounded-full overflow-hidden relative">
-            <Image src={user.avatarUrl} alt={user.username} fill style={{ objectFit: "cover" }} sizes="80px" className="block" />
-          </div>
-        ) : (
-          <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center text-4xl font-bold text-gray-700">
-            {user?.username?.charAt(0)?.toUpperCase() || "U"}
-          </div>
-        )}
-        <div>
-          <h2 className="text-2xl font-bold">{user?.username ? user.username.charAt(0).toUpperCase() + user.username.slice(1) : "Unknown"}</h2>
-          <p>
-            Rank: <strong>{user?.rank || "N/A"}</strong> | Level: <strong>{user?.level || "N/A"}</strong>
-          </p>
-          <p>
-            Wins: <strong>{user?.wins || 0}</strong> | Losses: <strong>{user?.losses || 0}</strong>
-          </p>
-          <p>Total Games Played: <strong>{user?.totalGames || 0}</strong></p>
-        </div>
-      </div>
+      <ViewProfileDetails user={user} />
+      
     </div>
   );
 }

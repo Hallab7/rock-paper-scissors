@@ -40,18 +40,6 @@ function ResultInner() {
   const computerChoice = searchParams.get("computer");
   const result = getResult(playerChoice, computerChoice);
 
-  // BlinkingDots component for inline score loader
-function BlinkingDots() {
-  const [dots, setDots] = useState("");
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
-  return <span className="inline-block w-6">{dots}</span>;
-}
-
   // Fetch user and score from backend on mount
   useEffect(() => {
     getCurrentUser()
@@ -92,17 +80,18 @@ function BlinkingDots() {
     if (!user) return;
 
     const updateScoreBackend = async () => {
-      try {
-        await fetch("/api/auth/score", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ score }),
-          credentials: "include",
-        });
-      } catch (err) {
-        console.error("Failed to update score:", err);
-      }
-    };
+  try {
+    await fetch("/api/auth/score", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ score, result }), // 🆕 include result
+      credentials: "include",
+    });
+  } catch (err) {
+    console.error("Failed to update score:", err);
+  }
+};
+
 
     updateScoreBackend();
   }, [score, user]);
