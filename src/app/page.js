@@ -74,27 +74,6 @@ export default function Home() {
       });
   }, [router]);
 
-  useEffect(() => {
-    if (!user) return;
-
-    async function updateScoreBackend() {
-      try {
-        await fetch("/api/auth/score", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ score }),
-          credentials: "include",
-        });
-      } catch (err) {
-        console.error("Failed to update score:", err);
-      }
-    }
-
-    updateScoreBackend();
-  }, [score, user]);
-
-
-
  useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
@@ -113,6 +92,7 @@ export default function Home() {
           null;
 
         setCurrentUser(me);
+        setScore(me?.score ?? 5);
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
       } finally {

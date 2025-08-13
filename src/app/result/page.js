@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import scissors from '../../assets/images/icon-scissors.svg';
@@ -29,6 +30,7 @@ const getResult = (player, computer) => {
 };
 
 function ResultInner() {
+  const hasPatched = useRef(false);
   const [score, setScore] = useState("\u221E");
   const [showModal, setShowModal] = useState(false);
   const [user, setUser] = useState(null);
@@ -58,43 +60,28 @@ function ResultInner() {
   }, [router]);
 
   // Update score based on game result after loading user
-  useEffect(() => {
-    if (loading) return;
+// Remove this effect entirely:
+// useEffect(() => { ... }, [score, user]);
 
-    setScore((prev) => {
-      if (result === "win") return prev + 1;
-      if (result === "lose") {
-        const newScore = prev - 1;
-        if (newScore <= 0) {
-          setShowModal(true);
-          return 0;
-        }
-        return newScore;
-      }
-      return prev;
-    });
-  }, [result, loading]);
+useEffect(() => {
+  if (loading || !user || hasPatched.current) return;
 
-  // Sync updated score to backend immediately when score or user changes
-  useEffect(() => {
-    if (!user) return;
+  hasPatched.current = true; // ✅ prevent second run
 
-    const updateScoreBackend = async () => {
-  try {
-    await fetch("/api/auth/score", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ score, result }), // 🆕 include result
-      credentials: "include",
-    });
-  } catch (err) {
-    console.error("Failed to update score:", err);
-  }
-};
+  let newScore = user.score ?? 10;
+  if (result === "win") newScore += 1;
+  else if (result === "lose") newScore = Math.max(0, newScore - 1);
 
+  setScore(newScore);
 
-    updateScoreBackend();
-  }, [score, user]);
+  fetch("/api/auth/score", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ score: newScore, result }),
+    credentials: "include",
+  }).catch(err => console.error("Failed to update score:", err));
+}, [loading, user, result]);
+
 
   // Handle game over modal close: reset score locally and backend
   const handleModalClose = () => {
