@@ -49,7 +49,7 @@ const getLevelIcon = (level) => {
   }
 };
 
-const ViewProfile = ({ user }) => {
+const ViewProfile = ({ user, userDetails }) => {
   const level = getLevelFromScore(user?.score || 0);
 
   return (
@@ -58,8 +58,8 @@ const ViewProfile = ({ user }) => {
         {user?.avatarUrl ? (
           <div className="w-20 h-20 rounded-full overflow-hidden relative">
             <Image
-              src={user.avatarUrl}
-              alt={user.username}
+              src={userDetails.avatarUrl}
+              alt={userDetails.username}
               fill
               style={{ objectFit: "cover" }}
               sizes="80px"
@@ -68,28 +68,28 @@ const ViewProfile = ({ user }) => {
           </div>
         ) : (
           <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center text-4xl font-bold text-gray-700">
-            {user?.username?.charAt(0)?.toUpperCase() || "U"}
+            {userDetails?.username?.charAt(0)?.toUpperCase() || "U"}
           </div>
         )}
         <div>
           <h2 className="text-2xl font-bold">
-            {user?.username
-              ? user.username.charAt(0).toUpperCase() + user.username.slice(1)
+            {userDetails?.username
+              ? userDetails.username.charAt(0).toUpperCase() + userDetails.username.slice(1)
               : "Unknown"}
           </h2>
           <p className="flex items-center gap-2">
-            Rank: <strong>#{user?.rank || "N/A"}</strong> | Level:{" "}
+            Rank: <strong>#{user?.rank || "\u221E"}</strong> | Level:{" "}
             <span className="flex items-center gap-1">
               <strong>{level}</strong> {getLevelIcon(level)}
             </span>
           </p>
           <p>
-            Wins: <strong>{user?.wins || 0}</strong> | Losses:{" "}
-            <strong>{user?.losses || 0}</strong>
+            Wins: <strong>{user?.wins || "\u221E"}</strong> | Losses:{" "}
+            <strong>{user?.losses || "\u221E"}</strong>
           </p>
           <p>
             Total Games Played: <strong>{
-user?.matchesPlayed || 0}</strong>
+user?.matchesPlayed || "\u221E"}</strong>
           </p>
         </div>
       </div>

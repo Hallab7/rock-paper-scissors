@@ -112,11 +112,11 @@ useEffect(() => {
   };
 
   const handleUpdateProfile = (newName, newAvatarUrl) => {
-    // setUser((u) => ({
-    //   ...u,
-    //   username: newName,
-    //   avatarUrl: newAvatarUrl ?? u.avatarUrl,
-    // }));
+    setUser((u) => ({
+      ...u,
+      username: newName,
+      avatarUrl: newAvatarUrl ?? u.avatarUrl,
+    }));
     setCurrentUser((u) => ({
       ...u,
       username: newName,
