@@ -50,7 +50,7 @@ function ResultInner() {
           router.push("/login");
         } else {
           setUser(user);
-          setScore(user.score ?? 10);
+          setScore(user.score ?? 5);
           setLoading(false);
         }
       })
@@ -62,11 +62,15 @@ function ResultInner() {
   // Update score based on game result after loading user
 // Remove this effect entirely:
 // useEffect(() => { ... }, [score, user]);
-
 useEffect(() => {
-  if (loading || !user || hasPatched.current) return;
+  if (loading || !user) return;
 
-  hasPatched.current = true; // ✅ prevent second run
+  const matchId = searchParams.get("matchId");
+  if (!matchId) return;
+
+  // Prevent duplicate update for the same match
+  const processedMatches = JSON.parse(localStorage.getItem("processedMatches") || "[]");
+  if (processedMatches.includes(matchId)) return;
 
   let newScore = user.score ?? 10;
   if (result === "win") newScore += 1;
@@ -80,13 +84,18 @@ useEffect(() => {
     body: JSON.stringify({ score: newScore, result }),
     credentials: "include",
   }).catch(err => console.error("Failed to update score:", err));
-}, [loading, user, result]);
+
+  // Mark this match as processed
+  processedMatches.push(matchId);
+  localStorage.setItem("processedMatches", JSON.stringify(processedMatches));
+}, [loading, user, result, searchParams]);
+
 
 
   // Handle game over modal close: reset score locally and backend
   const handleModalClose = () => {
     setShowModal(false);
-    setScore(10);
+    setScore(5);
     fetch("/api/auth/score", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

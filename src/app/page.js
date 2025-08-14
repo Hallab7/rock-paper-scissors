@@ -65,6 +65,7 @@ export default function Home() {
           router.push("/landing-page");
         } else {
           setUser(user);
+          console.log("Current user:", user);
           setScore(user.score ?? 5);
           setLoading(false);
         }
@@ -201,8 +202,8 @@ useEffect(() => {
                 onClick={() =>
                   router.push(
                     `/result?player=${choice.name}&computer=${
-                      choices[Math.floor(Math.random() * 3)].name
-                    }`
+                      choices[Math.floor(Math.random() * 3)].name 
+                    }&matchId=${crypto.randomUUID()}`
                   )
                 }
                 initial={{ scale: 0, opacity: 0 }}

@@ -49,13 +49,13 @@ const getLevelIcon = (level) => {
   }
 };
 
-const ViewProfile = ({ user, userDetails }) => {
-  const level = getLevelFromScore(user?.score || 0);
+const ViewProfile = ({userDetails }) => {
+  const level = getLevelFromScore(userDetails?.score || 0);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center space-x-4">
-        {user?.avatarUrl ? (
+        {userDetails?.avatarUrl ? (
           <div className="w-20 h-20 rounded-full overflow-hidden relative">
             <Image
               src={userDetails.avatarUrl}
@@ -66,7 +66,7 @@ const ViewProfile = ({ user, userDetails }) => {
               className="block"
             />
           </div>
-        ) : (
+        ) : ( 
           <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center text-4xl font-bold text-gray-700">
             {userDetails?.username?.charAt(0)?.toUpperCase() || "U"}
           </div>
@@ -78,18 +78,18 @@ const ViewProfile = ({ user, userDetails }) => {
               : "Unknown"}
           </h2>
           <p className="flex items-center gap-2">
-            Rank: <strong>#{user?.rank || "\u221E"}</strong> | Level:{" "}
+            Rank: <strong>#{userDetails?.rank || "\u221E"}</strong> | Level:{" "}
             <span className="flex items-center gap-1">
               <strong>{level}</strong> {getLevelIcon(level)}
             </span>
           </p>
           <p>
-            Wins: <strong>{user?.wins || "\u221E"}</strong> | Losses:{" "}
-            <strong>{user?.losses || "\u221E"}</strong>
+            Wins: <strong>{userDetails?.wins || "\u221E"}</strong> | Losses:{" "}
+            <strong>{userDetails?.losses || "\u221E"}</strong>
           </p>
           <p>
             Total Games Played: <strong>{
-user?.matchesPlayed || "\u221E"}</strong>
+userDetails?.matchesPlayed || "\u221E"}</strong>
           </p>
         </div>
       </div>

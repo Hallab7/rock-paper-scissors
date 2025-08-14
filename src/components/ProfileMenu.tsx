@@ -295,7 +295,7 @@ export default function ProfileMenu({
         <div className="border-t border-gray-300 pt-4  overflow-auto">
           {error && <p className="mb-2 text-red-600">{error}</p>}
 
-          {activeTab === "view" && <ViewProfile user={rankDetails} userDetails={user}  />}
+          {activeTab === "view" && <ViewProfile userDetails={user}  />}
 
           {activeTab === "edit" && (
             <EditProfileTab
@@ -504,10 +504,10 @@ export default function ProfileMenu({
    Subcomponents
    ---------------------- */
 
-function ViewProfile({ user, userDetails }) {
+function ViewProfile({ userDetails }) {
   return (
     <div className="space-y-4">
-      <ViewProfileDetails user={user} userDetails={userDetails} />
+      <ViewProfileDetails userDetails={userDetails} />
       
     </div>
   );

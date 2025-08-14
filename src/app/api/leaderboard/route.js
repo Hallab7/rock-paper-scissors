@@ -1,5 +1,4 @@
 // app/api/leaderboard/route.js
-
 import { NextResponse } from "next/server";
 import clientPromise from "../../../lib/mongodb";
 import jwt from "jsonwebtoken";
@@ -24,10 +23,7 @@ export async function GET(req) {
     // Fetch all users sorted by score (descending)
     const allUsers = await db
       .collection("users")
-      .find(
-        {},
-        { projection: { password: 0 } } // Exclude password but keep avatarUrl
-      )
+      .find({}, { projection: { password: 0 } })
       .sort({ score: -1 })
       .toArray();
 
@@ -35,18 +31,30 @@ export async function GET(req) {
     const capitalize = (name) =>
       name ? name.charAt(0).toUpperCase() + name.slice(1) : name;
 
-    // Add rank, capitalize usernames, keep avatarUrl
+    // Add rank and capitalize usernames
     const rankedUsers = allUsers.map((user, index) => ({
       _id: user._id.toString(),
       username: capitalize(user.username),
       avatarUrl: user.avatarUrl || null,
       score: user.score ?? 0,
-      wins: user.wins ?? 5,
+      wins: user.wins ?? 0,
       losses: user.losses ?? 0,
       matchesPlayed: user.matchesPlayed ?? 0,
       rank: index + 1,
       isCurrentUser: user._id.toString() === loggedInUserId,
     }));
+
+    // 🔹 Update ranks in the database
+    const bulkOps = rankedUsers.map((user) => ({
+      updateOne: {
+        filter: { _id: new ObjectId(user._id) },
+        update: { $set: { rank: user.rank } },
+      },
+    }));
+
+    if (bulkOps.length > 0) {
+      await db.collection("users").bulkWrite(bulkOps);
+    }
 
     // Top 10 players
     const topPlayers = rankedUsers.slice(0, 10);
