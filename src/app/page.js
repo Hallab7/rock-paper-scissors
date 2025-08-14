@@ -58,21 +58,21 @@ export default function Home() {
       }
     }, []);
 
-  // useEffect(() => {
-  //   getCurrentUser()
-  //     .then((user) => {
-  //       if (!user) {
-  //         router.push("/landing-page");
-  //       } else {
-  //         setUser(user);
-  //         setScore(user.score ?? 5);
-          
-  //       }
-  //     })
-  //     .catch(() => {
-  //       router.push("/landing-page");
-  //     });
-  // }, [router]);
+  useEffect(() => {
+    getCurrentUser()
+      .then((user) => {
+        if (!user) {
+          router.push("/landing-page");
+        } else {
+          setUser(user);
+          setScore(user.score ?? 5);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        router.push("/landing-page");
+      });
+  }, [router]);
 
 useEffect(() => {
   const fetchLeaderboard = async () => {
@@ -82,41 +82,23 @@ useEffect(() => {
 
       if (!res.ok) throw new Error(data.error || "Failed to fetch leaderboard");
 
-      // If the API says user is not authenticated, redirect
-      if (!data.currentUser) {
-        router.push("/landing-page");
-        return;
+        // Set top players
+        setTopPlayers(data.topPlayers || []);
+
+        // Get current user (either in topPlayers or outside top)
+        const me =
+          data.topPlayers.find((p) => p.isCurrentUser) ||
+          data.currentUserOutsideTop ||
+          null;
+
+        setCurrentUser(me);
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error);
       }
+    };
 
-      // Current user (either in top list or outside top)
-      const me =
-        data.topPlayers.find((p) => p.isCurrentUser) ||
-        data.currentUserOutsideTop ||
-        data.currentUser ||
-        null;
-
-      setCurrentUser(me);
-      setUser(me);
-      setScore(me?.score ?? 5);
-
-      // ✅ Stop loading immediately after we get the user data
-      setLoading(false);
-
-      // Continue setting leaderboard data afterwards
-      setTopPlayers(data.topPlayers || []);
-
-    } catch (error) {
-      console.error("Error fetching leaderboard:", error);
-      router.push("/landing-page");
-      setLoading(false);
-    }
-  };
-
-  fetchLeaderboard();
-}, [router]);
-
-
-
+    fetchLeaderboard();
+  }, []);
 
 
 
@@ -169,7 +151,7 @@ useEffect(() => {
         {/* Welcome */}
         <div>
           <span className="inline text-white font-semibold">
-            Welcome Back, {currentUser.username.charAt(0).toUpperCase() + currentUser.username.slice(1)}!
+            Welcome Back, {user.username.charAt(0).toUpperCase() + user.username.slice(1)}!
           </span>
         </div>
         
@@ -184,14 +166,14 @@ useEffect(() => {
 >
   {user.avatarUrl ? (
     <Image
-      src={currentUser.avatarUrl}
-      alt={currentUser.username}
+      src={user.avatarUrl}
+      alt={user.username}
       width={40}
       height={40}
       className="object-cover w-full h-full"
     />
   ) : (
-    currentUser.username.charAt(0).toUpperCase()
+    user.username.charAt(0).toUpperCase()
   )}
 </div>
 
