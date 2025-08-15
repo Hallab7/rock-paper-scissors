@@ -14,7 +14,7 @@ import GameLoadingScreen from "../components/LoadingState";
 
 import { getCurrentUser, logout } from "../utils/auth-client";
 import ProfileMenu from "../components/ProfileMenu";
-
+import { playClickSound } from "../utils/playClickSound";
 
 
 export default function Home() {
@@ -163,7 +163,9 @@ useEffect(() => {
 
           <div
   className="w-10 h-10 rounded-full overflow-hidden cursor-pointer flex items-center justify-center font-bold text-lg select-none bg-white text-[#1f3756]"
-  onClick={() => setShowProfileMenu(true)}
+  onClick={() =>{ setShowProfileMenu(true);
+    playClickSound("menuButton")
+  }}
 >
   {user.avatarUrl ? (
     <Image
@@ -199,13 +201,15 @@ useEffect(() => {
             return (
               <motion.div
                 key={index}
-                onClick={() =>
-                  router.push(
+                onClick={() => {
+                  router.push( 
                     `/result?player=${choice.name}&computer=${
                       choices[Math.floor(Math.random() * 3)].name 
                     }&matchId=${crypto.randomUUID()}`
-                  )
+                  );
+                  playClickSound("handButton")
                 }
+                  }
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2 * index, duration: 0.5 }}

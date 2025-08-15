@@ -74,6 +74,7 @@ if (action === "signup") {
     wins: 5,           // 🆕 new field
     losses: 0,         // 🆕 new field
     rank: 0, // 🆕 new field
+    processedMatches: [], // 🆕 new field
     createdAt: new Date(),
   };
 
@@ -88,6 +89,7 @@ if (action === "signup") {
     wins: userDoc.wins,
     losses: userDoc.losses,
     rank: userDoc.rank,
+    processedMatches: userDoc.processedMatches,
   };
 
   const token = jwt.sign(
@@ -130,13 +132,15 @@ if (action === "signup") {
   const wins = user.wins ?? 5;
   const losses = user.losses ?? 0;
   const rank = user.rank ?? 0;
+  const processedMatches = user.processedMatches || [];
 
   // If any are missing in DB, update them once
   if (
     user.matchesPlayed === undefined ||
     user.wins === undefined ||
     user.losses === undefined ||
-    user.rank === undefined
+    user.rank === undefined ||
+    user.processedMatches === undefined
   ) {
     await db.collection("users").updateOne(
       { _id: user._id },
@@ -146,6 +150,7 @@ if (action === "signup") {
           wins,
           losses,
           rank,
+          processedMatches,
         },
       }
     );
@@ -160,6 +165,7 @@ if (action === "signup") {
     wins,
     losses,
     rank,
+    processedMatches,
   };
 
   const token = jwt.sign(

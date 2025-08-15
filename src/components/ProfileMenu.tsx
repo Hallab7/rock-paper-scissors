@@ -5,6 +5,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Leaderboard from "./leaderboard";
 import  ViewProfileDetails from "./ViewProfile"
+import CheckBox from "./ui/checkBox"
+import { playClickSound } from "../utils/playClickSound";
 
 import {
   MdLogout,
@@ -115,6 +117,12 @@ export default function ProfileMenu({
   // delete account modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
+
+  // For toggling password visibility
+const [showCurrentPw, setShowCurrentPw] = useState(false);
+const [showNewPw, setShowNewPw] = useState(false);
+const [showConfirmPw, setShowConfirmPw] = useState(false);
+
 
   // settings state
   const [sound, setSound] = useState("on"); // "on" | "off"
@@ -234,6 +242,33 @@ export default function ProfileMenu({
     </label>
   );
 
+
+
+  const PasswordToggleButton = ({ show, onClick, ariaLabel }) => (
+  <button
+    type="button"
+    className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
+    onClick={onClick}
+    aria-label={ariaLabel}
+  >
+    {show ? (
+      // Eye-slash icon (hide)
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.027 10.027 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.998 9.998 0 011.025-2.072m2.417 2.417c.563-.442 1.258-.813 2.023-.813a4.025 4.025 0 014.025 4.025 4.025 4.025 0 01-.813 2.023m-4.023-4.023a4.025 4.025 0 00-4.025 4.025m4.025-4.025l2.417 2.417m-2.417-2.417l2.417 2.417"/>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+    ) : (
+      // Eye icon (show)
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+      </svg>
+    )}
+  </button>
+);
+
+
+
   /* ----------------------
      Render
      ---------------------- */
@@ -281,7 +316,9 @@ export default function ProfileMenu({
           ].map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() =>{setActiveTab(tab.key);
+                playClickSound("clickButton")
+              }}
               className={`flex items-center space-x-2 px-3 py-2 rounded cursor-pointer ${
                 activeTab === tab.key ? "bg-blue-600 text-white" : "hover:bg-gray-200"
               }`}
@@ -314,49 +351,41 @@ export default function ProfileMenu({
           {activeTab === "history" && <p>Game history and match records placeholder</p>}
 
           {activeTab === "settings" && (
-            <div className="space-y-6">
-              {/* Sound */}
-              <div>
-                <label className="block font-semibold mb-1">Sound</label>
-                <div className="flex space-x-4">
-                  <Radio name="sound" value="on" checked={sound === "on"} onChange={setSound} label="On" />
-                  <Radio name="sound" value="off" checked={sound === "off"} onChange={setSound} label="Off" />
-                </div>
-              </div>
+  <div className="space-y-6">
+    {/* Sound */}
+    <CheckBox toolName={'Sound'} checked={sound === 'on'} handleOnChange={() => setSound(sound === 'on' ? 'off' : 'on')} />
 
-              {/* Notifications */}
-              <div>
-                <label className="block font-semibold mb-1">Notifications</label>
-                <div className="flex space-x-4">
-                  <Radio name="notifications" value="on" checked={notifications === "on"} onChange={setNotifications} label="On" />
-                  <Radio name="notifications" value="off" checked={notifications === "off"} onChange={setNotifications} label="Off" />
-                </div>
-              </div>
+    {/* Notifications */}
+    <CheckBox toolName={'Notifications'} checked={notifications === 'on'} handleOnChange={() => setNotifications(notifications === 'on' ? 'off' : 'on')} />
 
-              {/* Dark Mode */}
-              <div>
-                <label className="block font-semibold mb-1">Dark Mode</label>
-                <div className="flex space-x-4">
-                  <Radio name="darkmode" value="on" checked={darkMode === "on"} onChange={setDarkMode} label="On" />
-                  <Radio name="darkmode" value="off" checked={darkMode === "off"} onChange={setDarkMode} label="Off" />
-                </div>
-              </div>
+    {/* Dark Mode */}
+        <CheckBox
+      toolName="Dark Mode"
+      checked={darkMode === 'on'}
+      handleOnChange={() => {
+        setDarkMode(darkMode === 'on' ? 'off' : 'on');
+        playClickSound("checkButton");
+      }}
+    />
 
-              {/* Change Password */}
-              <div>
-                <button
-                  onClick={() => {
-                    setPwError("");
-                    setPwSuccess("");
-                    setShowPasswordModal(true);
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Change Password
-                </button>
-              </div>
-            </div>
-          )}
+
+    {/* Change Avatar */}
+
+    {/* Change Password */}
+    <div>
+      <button
+        onClick={() => {
+          setPwError("");
+          setPwSuccess("");
+          setShowPasswordModal(true);
+        }}
+        className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        Change Password
+      </button>
+    </div>
+  </div>
+)}
 
           {activeTab === "leaderboard" && 
           <Leaderboard
@@ -452,46 +481,83 @@ export default function ProfileMenu({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
             >
-              <div className="bg-white p-6 rounded-lg shadow-lg w-96 text-black " onClick={(e) => e.stopPropagation()}>
-                <h2 className="text-lg font-bold mb-4">Change Password</h2>
+              <div
+  className="bg-white p-6 rounded-lg shadow-lg w-96 text-black"
+  onClick={(e) => e.stopPropagation()}
+>
+  <h2 className="text-lg font-bold mb-4">Change Password</h2>
 
-                {pwError && <p className="text-sm text-red-600 mb-2">{pwError}</p>}
-                {pwSuccess && <p className="text-sm text-green-600 mb-2">{pwSuccess}</p>}
+  {pwError && <p className="text-sm text-red-600 mb-2">{pwError}</p>}
+  {pwSuccess && <p className="text-sm text-green-600 mb-2">{pwSuccess}</p>}
 
-                <input
-                  type="password"
-                  placeholder="Current Password"
-                  className="w-full mb-3 px-3 py-2 border rounded text-black"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  disabled={pwLoading}
-                />
-                <input
-                  type="password"
-                  placeholder="New Password"
-                  className="w-full mb-3 px-3 py-2 border rounded"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  disabled={pwLoading}
-                />
-                <input
-                  type="password"
-                  placeholder="Confirm New Password"
-                  className="w-full mb-4 px-3 py-2 border rounded"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={pwLoading}
-                />
+  {/* Current Password */}
+  <div className="relative mb-3">
+    <input
+      type={showCurrentPw ? "text" : "password"}
+      placeholder="Current Password"
+      className="w-full px-3 py-2 border rounded text-black"
+      value={currentPassword}
+      onChange={(e) => setCurrentPassword(e.target.value)}
+      disabled={pwLoading}
+    />
+    <PasswordToggleButton
+      show={showCurrentPw}
+      onClick={() => setShowCurrentPw(!showCurrentPw)}
+      ariaLabel="Toggle current password visibility"
+    />
+  </div>
 
-                <div className="flex justify-end space-x-3">
-                  <button onClick={() => setShowPasswordModal(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
-                    Cancel
-                  </button>
-                  <button onClick={handleChangePassword} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700" disabled={pwLoading}>
-                    {pwLoading ? "Saving..." : "Save"}
-                  </button>
-                </div>
-              </div>
+  {/* New Password */}
+  <div className="relative mb-3">
+    <input
+      type={showNewPw ? "text" : "password"}
+      placeholder="New Password"
+      className="w-full px-3 py-2 border rounded"
+      value={newPassword}
+      onChange={(e) => setNewPassword(e.target.value)}
+      disabled={pwLoading}
+    />
+    <PasswordToggleButton
+      show={showNewPw}
+      onClick={() => setShowNewPw(!showNewPw)}
+      ariaLabel="Toggle new password visibility"
+    />
+  </div>
+
+  {/* Confirm New Password */}
+  <div className="relative mb-4">
+    <input
+      type={showConfirmPw ? "text" : "password"}
+      placeholder="Confirm New Password"
+      className="w-full px-3 py-2 border rounded"
+      value={confirmPassword}
+      onChange={(e) => setConfirmPassword(e.target.value)}
+      disabled={pwLoading}
+    />
+    <PasswordToggleButton
+      show={showConfirmPw}
+      onClick={() => setShowConfirmPw(!showConfirmPw)}
+      ariaLabel="Toggle confirm password visibility"
+    />
+  </div>
+
+  <div className="flex justify-end space-x-3">
+    <button
+      onClick={() => setShowPasswordModal(false)}
+      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+    >
+      Cancel
+    </button>
+    <button
+      onClick={handleChangePassword}
+      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+      disabled={pwLoading}
+    >
+      {pwLoading ? "Saving..." : "Save"}
+    </button>
+  </div>
+</div>
+
             </motion.div>
           </>
         )}
@@ -540,13 +606,26 @@ function EditProfileTab({ username, avatar, setName, setAvatarFile, onSave, onDe
         </div>
       )}
 
-      <button onClick={onSave} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded" disabled={loading}>
+            <button
+        onClick={() => {
+          onSave();
+          playClickSound("clickButton");
+        }}
+        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+        disabled={loading}
+      >
         {loading ? "Saving..." : "Save Changes"}
       </button>
 
+
       <hr className="my-4" />
 
-      <button onClick={onDelete} className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded" disabled={loading}>
+      <button 
+      onClick={() => {
+          onDelete();
+          playClickSound("clickButton");
+        }} 
+      className="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded" disabled={loading}>
         Delete Account
       </button>
     </div>
@@ -566,7 +645,9 @@ function FriendsTab({ friends }) {
           ))}
         </ul>
       )}
-      <button className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded" onClick={() => alert("Invite functionality to be implemented")}>
+      <button className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded" onClick={() => {alert("Invite functionality to be implemented");
+        playClickSound("clickButton")
+      }}>
         Invite Friends to Play
       </button>
     </div>
