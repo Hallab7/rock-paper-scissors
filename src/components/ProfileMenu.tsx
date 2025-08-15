@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Leaderboard from "./leaderboard";
 import  ViewProfileDetails from "./ViewProfile"
 import CheckBox from "./ui/checkBox"
-import { playClickSound } from "../utils/playClickSound";
+import { playClickSound, stopMusic } from "../utils/playClickSound";
 
 import {
   MdLogout,
@@ -378,6 +378,9 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
     toggleSound();
     if (!sound) { // means it was off, now turning on
       playClickSound("checkButton");
+      playClickSound("start"); 
+    } else { // means it was on, now turning off
+      stopMusic();
     }
   }}
 />
@@ -682,22 +685,26 @@ function EditProfileTab({ username, avatar, setName, setAvatarFile, onSave, onDe
 
 function FriendsTab({ friends }) {
   return (
-    <div>
-      <h3 className="font-semibold mb-2">Friends List</h3>
-      {(!friends || friends.length === 0) ? (
-        <p>You have no friends added yet.</p>
-      ) : (
-        <ul className="list-disc pl-5">
-          {friends.map((friend) => (
-            <li key={friend}>{friend}</li>
-          ))}
-        </ul>
-      )}
-      <button className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded" onClick={() => {alert("Invite functionality to be implemented");
-        playClickSound("clickButton")
-      }}>
-        Invite Friends to Play
-      </button>
-    </div>
-  );
+  <div>
+    <h3 className="font-semibold mb-2">Friends List</h3>
+    {(!friends || friends.length === 0) ? (
+      <p>You have no friends added yet.</p>
+    ) : (
+      <ul className="list-disc pl-5">
+        {friends.map((friend, index) => (
+          <li key={`friend-${index}-${friend}`}>{friend}</li>
+        ))}
+      </ul>
+    )}
+    <button
+      className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+      onClick={() => {
+        alert("Invite functionality to be implemented");
+        playClickSound("clickButton");
+      }}
+    >
+      Invite Friends to Play
+    </button>
+  </div>
+);
 }
