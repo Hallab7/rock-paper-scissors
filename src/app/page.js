@@ -14,7 +14,7 @@ import GameLoadingScreen from "../components/LoadingState";
 
 import { getCurrentUser, logout } from "../utils/auth-client";
 import ProfileMenu from "../components/ProfileMenu";
-import { playClickSound } from "../utils/playClickSound";
+import { playClickSound, stopMusic } from "../utils/playClickSound";
 
 
 export default function Home() {
@@ -59,21 +59,25 @@ export default function Home() {
     }, []);
 
   useEffect(() => {
-    getCurrentUser()
-      .then((user) => {
-        if (!user) {
-          router.push("/landing-page");
-        } else {
-          setUser(user);
-          console.log("Current user:", user);
-          setScore(user.score ?? 5);
-          setLoading(false);
-        }
-      })
-      .catch(() => {
+  getCurrentUser()
+    .then((user) => {
+      if (!user) {
         router.push("/landing-page");
-      });
-  }, [router]);
+      } else {
+        setUser(user);
+        console.log("Current user:", user);
+        setScore(user.score ?? 5);
+        setLoading(false);
+
+        // Play start sound after data is loaded
+        playClickSound("start");
+      }
+    })
+    .catch(() => {
+      router.push("/landing-page");
+    });
+}, [router]);
+
 
 useEffect(() => {
   const fetchLeaderboard = async () => {
@@ -207,7 +211,8 @@ useEffect(() => {
                       choices[Math.floor(Math.random() * 3)].name 
                     }&matchId=${crypto.randomUUID()}`
                   );
-                  playClickSound("handButton")
+                  stopMusic();
+                  playClickSound("handButton");
                 }
                   }
                 initial={{ scale: 0, opacity: 0 }}

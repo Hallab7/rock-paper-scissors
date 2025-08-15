@@ -11,6 +11,7 @@ import { Button } from '../../components/ui/button';
 import Hand from '../../components/hand';
 import Link from "next/link";
 import { motion, AnimatePresence, backIn } from "framer-motion";
+import { playClickSound, stopMusic } from "../../utils/playClickSound";
 
 import { getCurrentUser } from "../../utils/auth-client";
 import GameLoadingScreen from "../../components/LoadingState";
@@ -59,10 +60,7 @@ function ResultInner() {
       });
   }, [router]);
 
-  // Update score based on game result after loading user
-// Remove this effect entirely:
-// useEffect(() => { ... }, [score, user]);
-useEffect(() => {
+ useEffect(() => {
   if (loading || !user) return;
 
   const matchId = searchParams.get("matchId");
@@ -73,8 +71,16 @@ useEffect(() => {
   if (processedMatches.includes(matchId)) return;
 
   let newScore = user.score ?? 10;
-  if (result === "win") newScore += 1;
-  else if (result === "lose") newScore = Math.max(0, newScore - 1);
+
+  if (result === "win") {
+    newScore += 1;
+    playClickSound("win");
+  } else if (result === "lose") {
+    newScore = Math.max(0, newScore - 1);
+    playClickSound("lose");
+  } else if (result === "draw") {
+    playClickSound("draw");
+  }
 
   setScore(newScore);
 
@@ -183,14 +189,19 @@ useEffect(() => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.7 }}
       >
-        <Link href="/" >
-          <Button
-            className={`bg-white ${colorClass} px-8 py-2 font-bold rounded-md text-base cursor-pointer`}
-            
-          >
-            PLAY AGAIN
-          </Button>
-          </Link>
+        <Link href="/">
+  <Button
+    onClick={() => { 
+      stopMusic();
+      playClickSound("clickButton");
+      
+    }}
+    className={`bg-white ${colorClass} px-8 py-2 font-bold rounded-md text-base cursor-pointer`}
+  >
+    PLAY AGAIN
+  </Button>
+</Link>
+
         
       </motion.div>
 
