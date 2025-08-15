@@ -14,7 +14,7 @@ export default function GameLoadingScreen({ loadingMessage }) {
   ];
 
   return (
-    <div className="h-screen w-full flex flex-col items-center justify-center bg-gradient-to-b from-[#1f3756] to-[#141539] text-white overflow-hidden">
+    <div className="h-screen w-full flex flex-col items-center justify-center bg-gray-300 dark:bg-[#141539] text-[#141539] dark:text-white overflow-hidden">
       {/* Spinning gradient ring */}
       <motion.div
         animate={{ rotate: 360 }}

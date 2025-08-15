@@ -141,7 +141,7 @@ function ResultInner() {
   const colorClass = getColor(result);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1f3756] to-[#141539] text-white p-10 relative">
+    <div className="min-h-screen bg-gray-300 dark:bg-[#141539] text-[#141539] dark:text-white p-10 relative">
       <Hand score={score} />
 
       <div className="relative flex justify-center gap-10 mt-10">

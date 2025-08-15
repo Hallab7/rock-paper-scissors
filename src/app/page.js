@@ -149,13 +149,13 @@ useEffect(() => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1f3756] to-[#141539] text-white p-10 relative">
+    <div className="min-h-screen bg-gray-300 dark:bg-[#141539] text-[#141539] dark:text-white md:p-10 p-10 relative">
 
       {/* Top left header */}
       <header className="flex items-center space-x-4 justify-between mb-6">
         {/* Welcome */}
         <div>
-          <span className="inline text-white font-semibold">
+          <span className="inline md:text-2xl  font-bold">
             Welcome Back, {user.username.charAt(0).toUpperCase() + user.username.slice(1)}!
           </span>
         </div>
@@ -166,7 +166,7 @@ useEffect(() => {
           
 
           <div
-  className="w-10 h-10 rounded-full overflow-hidden cursor-pointer flex items-center justify-center font-bold text-lg select-none bg-white text-[#1f3756]"
+  className="w-10 h-10 md:w-20 md:h-20 rounded-full overflow-hidden cursor-pointer flex items-center justify-center font-bold text-lg select-none bg-white text-[#1f3756]"
   onClick={() =>{ setShowProfileMenu(true);
     playClickSound("menuButton")
   }}
@@ -190,43 +190,52 @@ useEffect(() => {
       <Hand score={score} />
 
       <div className="grid place-items-center mt-20">
-        <div className="relative w-[350px] h-[318.6px]">
-          {choices.map((choice, index) => {
-            let positionClass = "";
+        <div className="relative w-[330px] h-[310.6px] md:w-[350px] md:h-[318.6px]">
+  {/* Top row */}
+  {choices.slice(0, 2).map((choice, index) => (
+    <motion.div
+      key={index}
+      onClick={() => {
+        router.push(
+          `/result?player=${choice.name}&computer=${choices[Math.floor(Math.random() * 3)].name}&matchId=${crypto.randomUUID()}`
+        );
+        stopMusic();
+        playClickSound("handButton");
+      }}
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ delay: 0.2 * index, duration: 0.5 }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      className={`absolute top-0 ${index === 0 ? "left-0" : "right-0"} dark:bg-[#fafafa] bg-gray-100  w-32 h-32 rounded-full border-[12px] flex justify-center items-center cursor-pointer ${choice.border}`}
+    >
+      <Image src={choice.image} alt={choice.name} className="w-[50px] h-[50px]" />
+    </motion.div>
+  ))}
 
-            if (index === 0) {
-              positionClass = "absolute top-0 left-0";
-            } else if (index === 1) {
-              positionClass = "absolute top-0 right-0";
-            } else if (index === 2) {
-              positionClass = "absolute bottom-0 left-1/2 transform -translate-x-1/2";
-            }
+  {/* Bottom row center */}
+  <div className="absolute bottom-0 w-full flex justify-center">
+    <motion.div
+      key={choices[2].name}
+      onClick={() => {
+        router.push(
+          `/result?player=${choices[2].name}&computer=${choices[Math.floor(Math.random() * 3)].name}&matchId=${crypto.randomUUID()}`
+        );
+        stopMusic();
+        playClickSound("handButton");
+      }}
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ delay: 0.6, duration: 0.5 }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.95 }}
+      className={`dark:bg-[#fafafa] bg-gray-100 w-32 h-32 rounded-full border-[12px] flex justify-center items-center cursor-pointer ${choices[2].border}`}
+    >
+      <Image src={choices[2].image} alt={choices[2].name} className="w-[50px] h-[50px]" />
+    </motion.div>
+  </div>
+</div>
 
-            return (
-              <motion.div
-                key={index}
-                onClick={() => {
-                  router.push( 
-                    `/result?player=${choice.name}&computer=${
-                      choices[Math.floor(Math.random() * 3)].name 
-                    }&matchId=${crypto.randomUUID()}`
-                  );
-                  stopMusic();
-                  playClickSound("handButton");
-                }
-                  }
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2 * index, duration: 0.5 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                className={`bg-[#fafafa] w-32 h-32 rounded-full border-[12px] flex justify-center items-center cursor-pointer ${positionClass} ${choice.border}`}
-              >
-                <Image src={choice.image} alt={choice.name} className="w-[50px] h-[50px]" />
-              </motion.div>
-            );
-          })}
-        </div>
       </div>
 
       <motion.button

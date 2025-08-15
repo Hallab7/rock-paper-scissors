@@ -4,7 +4,6 @@ import { useState } from "react";
 import { login } from "../../utils/auth-client";
 import { useRouter } from "next/navigation";
 import GameLoadingScreen from "../../components/LoadingState";
-import StatusToast from "../../components/StatusToast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -159,14 +158,6 @@ export default function LoginPage() {
           </a>
         </p>
       </form>
-
-      {toast.show && (
-        <StatusToast
-          type={toast.type}
-          message={toast.message}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
-      )}
     </div>
   );
 }

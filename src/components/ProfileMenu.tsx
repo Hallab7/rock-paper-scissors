@@ -129,6 +129,30 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [notifications, setNotifications] = useState("on"); // "on" | "off"
   const [darkMode, setDarkMode] = useState("off"); // "on" | "off"
 
+  useEffect(() => {
+    const savedMode = localStorage.getItem("theme") || "off";
+    setDarkMode(savedMode);
+
+    if (savedMode === "on") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newMode = darkMode === "on" ? "off" : "on";
+    setDarkMode(newMode);
+    localStorage.setItem("theme", newMode);
+
+    if (newMode === "on") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    playClickSound("checkButton");
+  };
+
   // change password modal state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -291,7 +315,7 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
     <AnimatePresence>
       {/* backdrop */}
       <motion.div
-        className="fixed inset-0  z-40 h-screen bg-white "
+        className="fixed inset-0  z-40 h-screen bg-gray-300 dark:bg-[#141539] text-[#141539] dark:text-white "
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -300,7 +324,7 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
 
       {/* panel */}
       <motion.div
-        className="fixed top-0 right-0 z-50 bg-white text-black   p-6 w-full max-h-[80vh] overflow-y-auto"
+        className="fixed top-0 right-0 z-50 bg-gray-300 dark:bg-[#141539] text-[#141539] dark:text-white   p-6 w-full max-h-[80vh] overflow-y-auto"
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         exit={{ opacity: 0, x: 50 }}
@@ -347,7 +371,7 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
           ))}
         </nav>
 
-        <div className="border-t border-gray-300 pt-4  overflow-auto">
+        <div className="border-t dark:border-gray-300 border-[#141539] pt-4 bg-gray-300 dark:bg-[#141539] text-[#141539] dark:text-white  overflow-auto">
           {error && <p className="mb-2 text-red-600">{error}</p>}
 
           {activeTab === "view" && <ViewProfile userDetails={user}  />}
@@ -397,9 +421,9 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
     {/* Dark Mode */}
         <CheckBox
       toolName="Dark Mode"
-      checked={darkMode === 'on'}
+      checked={darkMode === "on"}
       handleOnChange={() => {
-        setDarkMode(darkMode === 'on' ? 'off' : 'on');
+        toggleDarkMode();
         playClickSound("checkButton");
       }}
     />
