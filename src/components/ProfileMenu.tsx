@@ -127,7 +127,7 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
   // settings state
   const [sound, setSound] = useState(true); // "on" | "off"
   const [notifications, setNotifications] = useState("on"); // "on" | "off"
-  const [darkMode, setDarkMode] = useState("off"); // "on" | "off"
+  const [darkMode, setDarkMode] = useState("on"); // "on" | "off"
 
   useEffect(() => {
     const savedMode = localStorage.getItem("theme") || "off";
