@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import Leaderboard from "./leaderboard";
@@ -125,7 +125,7 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
 
 
   // settings state
-  const [sound, setSound] = useState("on"); // "on" | "off"
+  const [sound, setSound] = useState(true); // "on" | "off"
   const [notifications, setNotifications] = useState("on"); // "on" | "off"
   const [darkMode, setDarkMode] = useState("off"); // "on" | "off"
 
@@ -147,6 +147,20 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
     setEditName(user?.username || "");
     setEditAvatar(user?.avatarUrl || "");
   }, [user]);
+
+   useEffect(() => {
+    const storedValue = localStorage.getItem("soundEnabled");
+    if (storedValue !== null) {
+      setSound(storedValue !== "false");
+    }
+  }, []);
+
+  
+  const toggleSound = () => {
+    const newValue = !sound;
+    setSound(newValue);
+    localStorage.setItem("soundEnabled", String(newValue));
+  };
 
   /* ----------------------
      Handlers
@@ -353,10 +367,25 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
           {activeTab === "settings" && (
   <div className="space-y-6">
     {/* Sound */}
-    <CheckBox toolName={'Sound'} checked={sound === 'on'} handleOnChange={() => setSound(sound === 'on' ? 'off' : 'on')} />
+    <CheckBox
+  toolName={'Sound'}
+  checked={sound === true}
+  handleOnChange={() => {
+    toggleSound();
+    if (!sound) { // means it was off, now turning on
+      playClickSound("checkButton");
+    }
+  }}
+/>
+
+
 
     {/* Notifications */}
-    <CheckBox toolName={'Notifications'} checked={notifications === 'on'} handleOnChange={() => setNotifications(notifications === 'on' ? 'off' : 'on')} />
+    <CheckBox toolName={'Notifications'} checked={notifications === 'on'} handleOnChange={() => {
+
+     setNotifications(notifications === 'on' ? 'off' : 'on');
+      playClickSound("checkButton");
+    }} />
 
     {/* Dark Mode */}
         <CheckBox

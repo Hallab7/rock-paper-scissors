@@ -9,8 +9,13 @@ const soundMap = {
 };
 
 export const playClickSound = (type) => {
+  // Check if sound is enabled in localStorage
+  const soundEnabled = localStorage.getItem("soundEnabled") !== "false";
+
+  if (!soundEnabled) return; // Do nothing if sound is off
+
   const fileName = soundMap[type] || soundMap.big;
   const audio = new Audio(`/sound/${fileName}`);
   audio.volume = 0.5;
-  audio.play().catch(err => console.log('Sound play error:', err));
+  audio.play().catch(err => console.log("Sound play error:", err));
 };
