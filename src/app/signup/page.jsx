@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
 import { signup } from "../../utils/auth-client"; // Restored original import
 import GameLoadingScreen from "../../components/LoadingState";
+import { MdArrowBack } from "react-icons/md"; // Importing MdArrowBack for back navigation
 import Link from "next/link"; // Import Link component
 
 export default function SignupPage() {
@@ -145,8 +146,9 @@ export default function SignupPage() {
         
         {/* Back to login link */}
         <div className="mt-8 text-center text-sm">
-          <Link href="/login" className="text-blue-600 hover:underline font-medium">
-            ← 
+          <Link href="/landing-page" className="text-blue-600 hover:underline font-medium">
+           <MdArrowBack className="inline-block mr-1" />
+           Back to Home
           </Link>
         </div>
       </motion.div>

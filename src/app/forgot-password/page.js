@@ -3,7 +3,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaEnvelope, FaLock, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // Import Link component
+import Link from "next/link"; // Import
+//  Link component
+import { MdArrowBack } from "react-icons/md";
 
 export default function ForgotPasswordFlow() {
   const router = useRouter();
@@ -289,7 +291,8 @@ export default function ForgotPasswordFlow() {
         {/* New Back to Login link */}
         <div className="mt-8 text-center text-sm">
           <Link href="/login" className="text-blue-600 hover:underline">
-            ← Back to Login
+            <MdArrowBack className="inline-block mr-1" />
+             Back to Login
           </Link>
         </div>
       </div>
