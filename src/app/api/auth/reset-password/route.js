@@ -40,13 +40,13 @@ export async function POST(req) {
     });
 
    await transporter.sendMail({
-  from: `"Your App Name" <${process.env.EMAIL_USER}>`,
+  from: `"Rock, Paper,Scissors" <${process.env.EMAIL_USER}>`,
   to: email,
   subject: "✅ Password Reset Successful",
   html: `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
       <h2 style="color: #4CAF50; text-align: center;">Password Reset Successful</h2>
-      <p>Hi <b>${user.name || "User"}</b>,</p>
+      <p>Dear <b>${user?.username.toUpperCase() || "Player"}</b>,</p>
       <p>Your password has been <b style="color: #4CAF50;">successfully reset</b>.</p>
       
       <p>If you did not perform this action, please 

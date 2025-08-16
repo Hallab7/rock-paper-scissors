@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
 import GameLoadingScreen from "../../components/LoadingState";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -141,6 +142,13 @@ export default function LoginPage() {
             Sign up
           </a>
         </p>
+
+        {/* Back to landing page link */}
+        <div className="mt-8 text-center text-sm">
+          <Link href="/landing-page" className="text-blue-600 hover:underline font-medium">
+            ← 
+          </Link>
+        </div>
       </motion.div>
     </div>
   );

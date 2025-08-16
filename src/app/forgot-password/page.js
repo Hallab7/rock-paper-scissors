@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaEnvelope, FaLock, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import Link from "next/link"; // Import Link component
 
 export default function ForgotPasswordFlow() {
   const router = useRouter();
@@ -10,7 +11,6 @@ export default function ForgotPasswordFlow() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ email: "", otp: "", newPassword: "" });
   const [message, setMessage] = useState({ text: "", type: "" }); // success / error
-
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -201,7 +201,7 @@ export default function ForgotPasswordFlow() {
               Your password has been reset successfully. You can now use your new password to log in.
             </p>
             <button
-              onClick= {() => { router.push('/login')}}
+              onClick={() => { router.push('/login')}}
               className="w-full flex items-center justify-center space-x-2 bg-gray-600 text-white py-2 rounded-lg font-semibold hover:bg-gray-700 transition duration-300"
             >
               Go to Login
@@ -286,6 +286,12 @@ export default function ForgotPasswordFlow() {
           {renderStep()}
         </AnimatePresence>
 
+        {/* New Back to Login link */}
+        <div className="mt-8 text-center text-sm">
+          <Link href="/login" className="text-blue-600 hover:underline">
+            ← Back to Login
+          </Link>
+        </div>
       </div>
     </div>
   );

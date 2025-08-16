@@ -27,14 +27,14 @@ export async function POST(req) {
   });
 
 await transporter.sendMail({
-  from: `"Your App Name" <${process.env.EMAIL_USER}>`,
+  from: `"Rock, Paper,Scissors" <${process.env.EMAIL_USER}>`,
   to: email,
   subject: "🔑 Your Password Reset OTP",
   html: `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #fafafa;">
       <h2 style="color: #4CAF50; text-align: center;">Password Reset Request</h2>
       
-      <p>Hi <b>${user?.name || "User"}</b>,</p>
+      <p>Dear <b>${user?.username.toUpperCase() || "Player"}</b>,</p>
       <p>We received a request to reset your password. Please use the OTP below to proceed:</p>
       
       <div style="text-align: center; margin: 20px 0;">
