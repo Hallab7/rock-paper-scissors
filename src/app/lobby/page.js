@@ -30,6 +30,7 @@ export default function Game() {
   const [playerMove, setPlayerMove] = useState(null);
   const [opponentMove, setOpponentMove] = useState(null);
   const [result, setResult] = useState(null);
+  const [playAgainRequested, setPlayAgainRequested] = useState(false);
 
   const choices = [
     { name: "rock", image: rock, border: "border-[#de3a5a]" },
@@ -77,6 +78,12 @@ export default function Game() {
       if (!playerMove) {
         setStatus("Opponent has played. Your turn!");
       }
+    });
+
+    // new round confirmed by server
+    socket.on("newRound", () => {
+      resetRound(true);
+      setPlayAgainRequested(false);
     });
 
     return () => {
@@ -170,13 +177,20 @@ export default function Game() {
           ➕ Join Room
         </button>
 
-        <button
-          className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
-          onClick={() => resetRound(true)}
-          disabled={!roomId}
-        >
-          🔁 Play Again
-        </button>
+        {/* Play Again only visible when round ends */}
+        {result && (
+          <button
+            className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
+            onClick={() => {
+              setPlayAgainRequested(true);
+              socketRef.current?.emit("playAgain", roomId);
+              setStatus("Waiting for opponent to click Play Again...");
+            }}
+            disabled={playAgainRequested}
+          >
+            🔁 {playAgainRequested ? "Waiting..." : "Play Again"}
+          </button>
+        )}
       </div>
 
       {roomId && (
