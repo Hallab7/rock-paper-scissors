@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signup } from "../../utils/auth-client";
+import { motion, AnimatePresence } from "framer-motion";
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaExclamationCircle } from "react-icons/fa";
+import { signup } from "../../utils/auth-client"; // Restored original import
 import GameLoadingScreen from "../../components/LoadingState";
 
 export default function SignupPage() {
@@ -11,7 +13,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
-  // New state to manage password visibility
+  // State to manage password visibility
   const [showPassword, setShowPassword] = useState(false);
 
   // Function to toggle password visibility
@@ -28,8 +30,8 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
     try {
-      await signup(form);
-      router.push("/login"); // redirect to login page after successful signup
+      await signup(form); // Restored original function call
+      router.push("/login"); // Redirect to login page after successful signup
     } catch (err) {
       setError(err.message);
     } finally {
@@ -39,11 +41,11 @@ export default function SignupPage() {
 
   if (loading) {
     return (
-      <div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-[#141539] text-[#141539] dark:text-white p-6">
         <GameLoadingScreen
           loadingMessage={
             <>
-              Please <span className="text-[#5671f5]">Wait...</span>
+              Creating your <span className="text-blue-600">account...</span>
             </>
           }
         />
@@ -52,114 +54,94 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#1f3756] to-[#141539] p-6">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-full max-w-md space-y-4 text-[#1f3756]"
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md space-y-6"
       >
-        <h1 className="text-2xl font-bold text-center text-gray-800">Sign Up</h1>
-
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <input
-          type="text"
-          name="username"
-          placeholder="Username"
-          value={form.username}
-          onChange={handleChange}
-          className="w-full p-3 border rounded-lg"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          className="w-full p-3 border rounded-lg"
-          required
-        />
+        <h1 className="text-3xl font-bold text-center text-gray-800">Create an Account</h1>
         
-        {/* Password field with show/hide functionality */}
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            name="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            className="w-full p-3 border rounded-lg pr-10"
-            required
-          />
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="flex items-center space-x-2 p-3 rounded-lg text-sm bg-red-100 text-red-700"
+            >
+              <FaExclamationCircle />
+              <span>{error}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="relative">
+            <FaUser className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={form.username}
+              onChange={handleChange}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+              required
+            />
+          </div>
+
+          <div className="relative">
+            <FaEnvelope className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={handleChange}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+              required
+            />
+          </div>
+
+          <div className="relative">
+            <FaLock className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={form.password}
+              onChange={handleChange}
+              className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+              required
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition duration-300"
+              onClick={togglePasswordVisibility}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+
           <button
-            type="button"
-            className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer"
-            onClick={togglePasswordVisibility}
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            type="submit"
+            disabled={loading}
+            className="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
-            {showPassword ? (
-              // Eye-slash icon (hide)
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13.875 18.825A10.027 10.027 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.998 9.998 0 011.025-2.072m2.417 2.417c.563-.442 1.258-.813 2.023-.813a4.025 4.025 0 014.025 4.025 4.025 4.025 0 01-.813 2.023m-4.023-4.023a4.025 4.025 0 00-4.025 4.025m4.025-4.025l2.417 2.417m-2.417-2.417l2.417 2.417"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            ) : (
-              // Eye icon (show)
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-            )}
+            {loading ? "Creating account..." : "Sign Up"}
           </button>
-        </div>
+        </form>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-lg font-semibold transition"
-        >
-          {loading ? "Creating account..." : "Sign Up"}
-        </button>
-
-        <p className="text-sm text-center text-gray-600">
+        <p className="text-sm text-center text-gray-500">
           Already have an account?{" "}
-          <a href="/login" className="text-blue-500 hover:underline">
+          <a href="/login" className="text-blue-600 hover:underline font-medium">
             Log in
           </a>
         </p>
-      </form>
+      </motion.div>
     </div>
   );
 }

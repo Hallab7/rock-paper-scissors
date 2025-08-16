@@ -23,7 +23,7 @@ export default function Leaderboard({ topPlayers = [], currentUser = null, loadi
       key={player._id}
       className={`transition-colors duration-200 ${
         highlight
-          ? "bg-blue-600 text-black font-bold"
+          ? "bg-blue-600 text-black font-bold rounded-lg"
           : "hover:bg-gray-200/30"
       }`}
     >
@@ -52,7 +52,7 @@ export default function Leaderboard({ topPlayers = [], currentUser = null, loadi
   const isUserInTop = currentUser && topPlayers.some(p => p._id === currentUser._id);
 
   return (
-    <div className="p-6 bg-white/10 rounded-xl shadow-lg text-black max-w-2xl mx-auto backdrop-blur-sm">
+    <div className="p-6 bg-white/70 rounded-xl shadow-lg text-black max-w-2xl mx-auto backdrop-blur-sm">
       <h2 className="text-xl md:text-3xl font-extrabold mb-6 text-center text-black drop-shadow">
         🏆 Leaderboard (Top 10)
       </h2>
