@@ -2,7 +2,7 @@ import React from 'react'
 
 const checkBox = ({ toolName, handleOnChange, checked }) => {
   return (
-    <div className="flex items-center px-3 justify-between bg-gray-300 dark:bg-[#141539] text-[#141539] dark:text-white">
+    <div className="flex items-center px-3 justify-between bg-gray-100 dark:bg-[#141539] text-[#141539] dark:text-white">
       <label className="font-semibold ">{toolName}</label>
       <label className="relative inline-flex items-center cursor-pointer">
         <input
