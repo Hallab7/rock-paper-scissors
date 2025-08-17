@@ -9,7 +9,7 @@ import rock from "../../assets/images/icon-rock.svg";
 import { FaCopy } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const SOCKET_URL = "http://localhost:4000"; // Or from env
+const SOCKET_URL = "https://rock-paper-brei.onrender.com"; // Or from env
 
 const normalizeMove = (m) => {
   if (!m) return null;
