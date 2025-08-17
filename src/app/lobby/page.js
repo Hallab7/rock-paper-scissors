@@ -31,12 +31,16 @@ export default function Game() {
   const [opponentMove, setOpponentMove] = useState(null);
   const [result, setResult] = useState(null);
   const [playAgainRequested, setPlayAgainRequested] = useState(false);
+  const [inRoom, setInRoom] = useState(false);
+
 
   const choices = [
     { name: "rock", image: rock, border: "border-[#de3a5a]" },
     { name: "paper", image: paper, border: "border-[#5671f5]" },
     { name: "scissors", image: scissors, border: "border-[#eca922]" },
   ];
+  const getChoice = (name) => choices.find((c) => c.name === name);
+
 
   // connect once
   useEffect(() => {
@@ -51,26 +55,34 @@ export default function Game() {
       setStatus("Waiting for opponent...");
     });
 
+    socket.on("opponentWantsRematch", () => {
+    setStatus("Opponent wants to play again 🔁");
+  });
+
+
     socket.on("matchFound", ({ roomId }) => {
       setRoomId(roomId);
+      setInRoom(true);
       setStatus("Match found! Start playing.");
       resetRound(false);
     });
 
     socket.on("roomCreated", ({ roomId }) => {
       setRoomId(roomId);
+      setInRoom(true);
       setStatus(`Room created: ${roomId}. Share this ID with a friend.`);
       resetRound(false);
     });
 
     socket.on("opponentJoined", ({ roomId }) => {
+      setInRoom(true);
       setStatus(`Opponent joined in ${roomId}! Start playing.`);
       resetRound(false);
     });
 
-    socket.on("roomError", (msg) => {
-      setStatus(msg);
-    });
+   socket.on("opponentLeft", (msg) => {
+  setStatus(msg.message);
+});
 
     socket.on("opponentMove", (incoming) => {
       const move = normalizeMove(incoming);
@@ -160,38 +172,72 @@ export default function Game() {
     if (announce) setStatus("New round! Make your move.");
   };
 
+  const leaveRoom = () => {
+  if (roomId) {
+    socketRef.current?.emit("leaveRoom", roomId);
+  }
+  setRoomId(null);
+  setInRoom(false);
+  resetRound(false);
+  setStatus("You left the room. Ready to find/join again.");
+};
+
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white px-4">
-      <h1 className="text-3xl font-bold mb-4">🎮 Rock Paper Scissors Online</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen  bg-[#141539]  text-white px-4">
+      <h1 className="text-3xl text-center font-bold mb-4">🎮 Rock Paper Scissors Online</h1>
 
       <p className="mb-4 text-center">{status}</p>
 
-      <div className="flex flex-wrap gap-3 mb-5">
-        <button className="px-4 py-2 bg-green-600 rounded" onClick={findMatch}>
-          🔍 Find Match
-        </button>
-        <button className="px-4 py-2 bg-purple-600 rounded" onClick={createRoom}>
-          🎮 Create Room
-        </button>
-        <button className="px-4 py-2 bg-blue-600 rounded" onClick={joinRoom}>
-          ➕ Join Room
-        </button>
+      <div className="flex flex-wrap gap-3 mb-5 justify-center items-center">
+  {!inRoom ? (
+    <>
+      <button
+        className="px-4 py-2 bg-green-600 rounded"
+        onClick={findMatch}
+        disabled={inRoom}
+      >
+        🔍 Find Match
+      </button>
+      <button
+        className="px-4 py-2 bg-purple-600 rounded"
+        onClick={createRoom}
+        disabled={inRoom}
+      >
+        🎮 Create Room
+      </button>
+      <button
+        className="px-4 py-2 bg-blue-600 rounded"
+        onClick={joinRoom}
+        disabled={inRoom}
+      >
+        ➕ Join Room
+      </button>
+    </>
+  ) : (
+    <button
+      className="px-4 py-2 bg-red-600 rounded"
+      onClick={leaveRoom}
+    >
+      🚪 Leave Room
+    </button>
+  )}
 
-        {/* Play Again only visible when round ends */}
-        {result && (
-          <button
-            className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
-            onClick={() => {
-              setPlayAgainRequested(true);
-              socketRef.current?.emit("playAgain", roomId);
-              setStatus("Waiting for opponent to click Play Again...");
-            }}
-            disabled={playAgainRequested}
-          >
-            🔁 {playAgainRequested ? "Waiting..." : "Play Again"}
-          </button>
-        )}
-      </div>
+  {result && (
+    <button
+      className="px-4 py-2 bg-gray-700 rounded disabled:opacity-50"
+      onClick={() => {
+        setPlayAgainRequested(true);
+        socketRef.current?.emit("playAgain", roomId);
+        setStatus("Waiting for opponent to click Play Again...");
+      }}
+      disabled={playAgainRequested}
+    >
+      🔁 {playAgainRequested ? "Waiting..." : "Play Again"}
+    </button>
+  )}
+</div>
+
 
       {roomId && (
         <div className="mb-4">
@@ -202,87 +248,120 @@ export default function Game() {
       )}
 
       {/* Triangle choices */}
-      <div className="grid place-items-center mt-6">
-        <div className="relative w-[330px] h-[310.6px] md:w-[350px] md:h-[318.6px]">
-          {choices.slice(0, 2).map((choice, index) => {
-            const disabled = !!playerMove || result !== null || !roomId;
-            return (
-              <motion.button
-                key={choice.name}
-                onClick={() => sendMove(choice.name)}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2 * index, duration: 0.5 }}
-                whileHover={!disabled ? { scale: 1.08 } : {}}
-                whileTap={!disabled ? { scale: 0.96 } : {}}
-                disabled={disabled}
-                className={`absolute top-0 ${
-                  index === 0 ? "left-0" : "right-0"
-                } w-32 h-32 rounded-full border-[12px] flex justify-center items-center cursor-pointer ${
-                  choice.border
-                } ${
-                  disabled
-                    ? "opacity-60 cursor-not-allowed"
-                    : "bg-[#fafafa]"
-                }`}
-              >
-                <Image
-                  src={choice.image}
-                  alt={choice.name}
-                  className="w-[50px] h-[50px]"
-                />
-              </motion.button>
-            );
-          })}
+      {/* Game board */}
+<div className="grid place-items-center mt-6">
+  {/* If no move made yet → show triangle choices */}
+  {!playerMove && !result && (
+    <div className="relative w-[330px] h-[310.6px] md:w-[350px] md:h-[318.6px]">
+      {choices.slice(0, 2).map((choice, index) => {
+        const disabled = !!playerMove || result !== null || !roomId;
+        return (
+          <motion.button
+            key={choice.name}
+            onClick={() => sendMove(choice.name)}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 * index, duration: 0.5 }}
+            whileHover={!disabled ? { scale: 1.08 } : {}}
+            whileTap={!disabled ? { scale: 0.96 } : {}}
+            disabled={disabled}
+            className={`absolute top-0 ${index === 0 ? "left-0" : "right-0"}
+              w-32 h-32 rounded-full border-[12px] flex justify-center items-center cursor-pointer
+              ${choice.border} ${disabled ? "opacity-60 cursor-not-allowed" : "bg-[#fafafa]"}`}
+          >
+            <Image src={choice.image} alt={choice.name} className="w-[50px] h-[50px]" />
+          </motion.button>
+        );
+      })}
 
-          <div className="absolute bottom-0 w-full flex justify-center">
-            {(() => {
-              const choice = choices[2];
-              const disabled = !!playerMove || result !== null || !roomId;
-              return (
-                <motion.button
-                  key={choice.name}
-                  onClick={() => sendMove(choice.name)}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.6, duration: 0.5 }}
-                  whileHover={!disabled ? { scale: 1.08 } : {}}
-                  whileTap={!disabled ? { scale: 0.96 } : {}}
-                  disabled={disabled}
-                  className={`w-32 h-32 rounded-full border-[12px] flex justify-center items-center cursor-pointer ${
-                    choice.border
-                  } ${
-                    disabled
-                      ? "opacity-60 cursor-not-allowed"
-                      : "bg-gray-100"
-                  }`}
-                >
-                  <Image
-                    src={choice.image}
-                    alt={choice.name}
-                    className="w-[50px] h-[50px]"
-                  />
-                </motion.button>
-              );
-            })()}
-          </div>
-        </div>
+      <div className="absolute bottom-0 w-full flex justify-center">
+        {(() => {
+          const choice = choices[2];
+          const disabled = !!playerMove || result !== null || !roomId;
+          return (
+            <motion.button
+              key={choice.name}
+              onClick={() => sendMove(choice.name)}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              whileHover={!disabled ? { scale: 1.08 } : {}}
+              whileTap={!disabled ? { scale: 0.96 } : {}}
+              disabled={disabled}
+              className={`w-32 h-32 rounded-full border-[12px] flex justify-center items-center cursor-pointer
+                ${choice.border} ${disabled ? "opacity-60 cursor-not-allowed" : "bg-gray-100"}`}
+            >
+              <Image src={choice.image} alt={choice.name} className="w-[50px] h-[50px]" />
+            </motion.button>
+          );
+        })()}
       </div>
+    </div>
+  )}
+
+  {/* If you have chosen but opponent hasn’t → show only your hand (with its colored border) */}
+  {playerMove && !opponentMove && (
+    <div className="flex justify-center items-center gap-8 mt-6">
+      <div
+        className={`w-32 h-32 rounded-full border-[12px] flex justify-center items-center bg-[#fafafa]
+          ${getChoice(playerMove)?.border || ""}`}
+      >
+        <Image
+          src={getChoice(playerMove)?.image}
+          alt={playerMove}
+          className="w-[50px] h-[50px]"
+        />
+      </div>
+      <div className="w-32 h-32 rounded-full border-[4px] border-dashed border-gray-500 flex justify-center items-center text-gray-400">
+        Waiting...
+      </div>
+    </div>
+  )}
+
+  {/* If both moves chosen → show both hands (each with its colored border) */}
+  {playerMove && opponentMove && (
+    <div className="flex justify-center items-center gap-8 mt-6">
+      <div
+        className={`w-32 h-32 rounded-full border-[12px] flex justify-center items-center bg-[#fafafa]
+          ${getChoice(playerMove)?.border || ""}`}
+      >
+        <Image
+          src={getChoice(playerMove)?.image}
+          alt={playerMove}
+          className="w-[50px] h-[50px]"
+        />
+      </div>
+      <div
+        className={`w-32 h-32 rounded-full border-[12px] flex justify-center items-center bg-[#fafafa]
+          ${getChoice(opponentMove)?.border || ""}`}
+      >
+        <Image
+          src={getChoice(opponentMove)?.image}
+          alt={opponentMove}
+          className="w-[50px] h-[50px]"
+        />
+      </div>
+    </div>
+  )}
+</div>
+
 
       {/* Round summary */}
       <div className="mt-8 text-center space-y-1">
-        {playerMove && (
+        
+        {result &&
+        <>
+        <h2 className="text-2xl font-bold mt-3">{result}</h2>
           <p>
             You played: <span className="font-semibold">{playerMove}</span>
           </p>
-        )}
-        {opponentMove && (
           <p>
             Opponent played:{" "}
             <span className="font-semibold">{opponentMove}</span>
           </p>
-        )}
-        {result && <h2 className="text-2xl font-bold mt-3">{result}</h2>}
+        </>
+        }
+
       </div>
     </div>
   );
