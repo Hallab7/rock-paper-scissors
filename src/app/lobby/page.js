@@ -6,9 +6,10 @@ import Image from "next/image";
 import scissors from "../../assets/images/icon-scissors.svg";
 import paper from "../../assets/images/icon-paper.svg";
 import rock from "../../assets/images/icon-rock.svg";
+import { FaCopy } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const SOCKET_URL = "https://rock-paper-brei.onrender.com"; // Or from env
+const SOCKET_URL = "http://localhost:4000"; // Or from env
 
 const normalizeMove = (m) => {
   if (!m) return null;
@@ -42,6 +43,8 @@ export default function Game() {
   const [result, setResult] = useState(null);
   const [playAgainRequested, setPlayAgainRequested] = useState(false);
   const [inRoom, setInRoom] = useState(false);
+  const [roomIdStatus, setRoomIdStatus] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const choices = [
     { name: "rock", image: rock, border: "border-[#de3a5a]" },
@@ -108,6 +111,7 @@ export default function Game() {
       setPlayers(players || []);
       setInRoom(true);
       setStatus(`Room created: ${roomId}. Share this ID with a friend.`);
+      setRoomIdStatus(true)
       resetRound(false);
     });
 
@@ -129,6 +133,8 @@ export default function Game() {
       if (msg?.players) setPlayers(msg.players);
       // keep inRoom true so UI buttons stay hidden until local player explicitly leaves
       setStatus(msg.message || "Opponent left");
+      setPlayAgainRequested(false);
+      setResult(false)
     });
 
     socket.on("opponentMove", (incoming) => {
@@ -208,7 +214,7 @@ export default function Game() {
     const newRoom = `room-${Math.floor(Math.random() * 10000)}`;
     setRoomId(newRoom);
     socketRef.current?.emit("createRoom", { roomId: newRoom, user: userPayload });
-    setStatus(`Creating room ${newRoom}...`);
+    setStatus(`Creating room ...`);
     resetRound(false);
   };
 
@@ -261,25 +267,58 @@ export default function Game() {
     setPlayers([]);
     resetRound(false);
     setStatus("You left the room. Ready to find/join again.");
+    setPlayAgainRequested(false);
   };
 
   // Derive my/opponent display names
   const myPlayer = players.find((p) => p.socketId === mySid) || null;
   const oppPlayer = players.find((p) => p.socketId !== mySid) || null;
 
+  const handleCopy = async () => {
+    if (!roomId) return;
+    await navigator.clipboard.writeText(roomId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000); // reset after 2s
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#141539] text-white px-4">
-      <h1 className="text-3xl text-center font-bold mb-4">🎮 Rock Paper Scissors Online</h1>
+    <div className="flex flex-col items-center min-h-screen bg-[#141539] text-white px-4">
 
-      {/* User info status */}
-      {loadingUser ? (
-        <p className="mb-2 text-center">Loading your profile…</p>
-      ) : me ? (
-        <p className="mb-2 text-center">Logged in as <b>{me.username}</b></p>
-      ) : (
+      <div className="w-full max-w-2xl mt-6 flex items-center justify-between mb-4">
+    {/* User info status */}
+    { loadingUser ? (
+        <div className="flex items-center justify-between animate-pulse w-full">
+            {/* Skeleton for Username */}
+            <div className="h-4 bg-gray-700 rounded w-32"></div>
+            
+            {/* Skeleton for Avatar */}
+            <div className="w-10 h-10 rounded-full bg-gray-700"></div>
+        </div>
+    ) : me ? (
+        <>
+        <p className="mb-2 text-center">
+            Welcome <b>{me?.username || "unknown"}!</b>
+        </p>
+        <div className="w-10 h-10 rounded-full overflow-hidden cursor-pointer flex items-center justify-center font-bold text-lg select-none bg-[#141539] dark:bg-white text-[#1f3756]">
+            {me?.avatarUrl ? (
+                <Image
+                    src={me.avatarUrl}
+                    alt="User Avatar"
+                    width={40}
+                    height={40}
+                    className="object-cover w-full h-full"
+                />
+            ) : (
+                me?.username?.charAt(0).toUpperCase() || "U"
+            )}
+        </div>
+        </>
+    ) : (
         <p className="mb-2 text-center text-red-300">You are not logged in.</p>
-      )}
-
+    )}
+</div>
+      
+      <h1 className="text-3xl text-center font-bold mb-4">🎮 Rock Paper Scissors Online</h1>
       <p className="mb-4 text-center">{status}</p>
 
       {/* Banner with names */}
@@ -323,13 +362,23 @@ export default function Game() {
         )}
       </div>
 
-      {roomId && (
-        <div className="mb-4">
+      {roomId && roomIdStatus && (
+        <div className="mb-4 flex items-center gap-2">
           <p>
             Room ID: <span className="font-mono">{roomId}</span>
           </p>
+          <button
+            onClick={handleCopy}
+            className="p-1 rounded-md dark:hover:bg-gray-700 transition"
+          >
+            <FaCopy size={18} />
+          </button>
+          {copied && (
+            <span className="text-green-500 text-sm ml-2">Copied!</span>
+          )}
         </div>
       )}
+
 
       {/* === Game board === */}
       <div className="grid place-items-center mt-6">
@@ -421,8 +470,8 @@ export default function Game() {
         {result && (
           <>
             <h2 className="text-2xl font-bold mt-3">{result}</h2>
-            <p>You played: <span className="font-semibold">{playerMove}</span></p>
-            <p>Opponent played: <span className="font-semibold">{opponentMove}</span></p>
+            <p>{myPlayer?.username || "You"} played: <span className="font-semibold">{playerMove}</span></p>
+            <p>{oppPlayer?.username || "Opponent"}  played: <span className="font-semibold">{opponentMove}</span></p>
           </>
         )}
       </div>
