@@ -92,6 +92,48 @@ if (action === "signup") {
     processedMatches: userDoc.processedMatches,
   };
 
+  // ✅ Send Welcome Email
+  try {
+    const nodemailer = require("nodemailer");
+
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com", // Or your SMTP provider
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Rock, Paper, Scissors" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Welcome to Rock, Paper, Scissors 🎉",
+      html: `
+        <div style="font-family: Arial, sans-serif; padding:20px; background:#f9f9f9;">
+          <h2 style="color:#4CAF50;">Welcome, ${username}!</h2>
+          <p>Thanks for signing up for <b>Rock, Paper, Scissors</b>. We're excited to have you join the community 🎮.</p>
+          <p>You can now log in and start playing with friends, earn points, and climb the leaderboard!</p>
+          <br />
+          <a href="https://rock-paper-scissors-sigma-rust.vercel.app/login"
+            style="padding:10px 15px; background:#4CAF50; color:white; text-decoration:none; border-radius:5px;">
+            Get Started
+          </a>
+          <br /><br />
+          <p style="font-size:12px; color:#777;">If you did not sign up, please ignore this email.</p>
+
+          <hr style="margin: 30px 0;">
+      <p style="font-size: 12px; color: #777; text-align: center;">
+        &copy; ${new Date().getFullYear()} Hallab. All rights reserved.
+      </p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    console.error("Error sending welcome email:", error);
+  }
+
   const token = jwt.sign(
     { sub: user._id, email: user.email },
     process.env.JWT_SECRET,
