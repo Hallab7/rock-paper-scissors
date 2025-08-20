@@ -8,6 +8,8 @@ import paper from "../../assets/images/icon-paper.svg";
 import rock from "../../assets/images/icon-rock.svg";
 import { FaCopy } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { MdArrowBack } from "react-icons/md";
+import Link from "next/link";
 
 const SOCKET_URL = "https://rock-paper-brei.onrender.com"; // Or from env
 
@@ -284,12 +286,32 @@ export default function Game() {
   return (
     <div className="flex flex-col items-center min-h-screen bg-[#141539] text-white px-4">
 
-      <div className="w-full max-w-2xl mt-6 flex items-center justify-between mb-4">
+      
+
+      <div className="w-full mt-6 flex items-center justify-between mb-4">
     {/* User info status */}
+          <div>
+            <Link href="/"
+            >
+              <button 
+              // onClick={ () => {
+              //     closeAction();
+              //     playClickSound("clickButton");
+              //   }} 
+                          className="text-white hover:text-gray-700 cursor-pointer">
+                            <MdArrowBack size={24} />
+                          </button>
+                          </Link>
+            </div>
     { loadingUser ? (
         <div className="flex items-center justify-between animate-pulse w-full">
             {/* Skeleton for Username */}
-            <div className="h-4 bg-gray-700 rounded w-32"></div>
+            <div></div>
+            <div className=" flex items-center">
+
+            <p>Logged in as:</p>
+            <p className="h-4 bg-gray-700 rounded w-20"></p>
+            </div>
             
             {/* Skeleton for Avatar */}
             <div className="w-10 h-10 rounded-full bg-gray-700"></div>
@@ -297,7 +319,7 @@ export default function Game() {
     ) : me ? (
         <>
         <p className="mb-2 text-center">
-            Welcome <b>{me?.username || "unknown"}!</b>
+            Logged in as: <b className="font-bold text-blue-600">{me?.username || "unknown"}!</b>
         </p>
         <div className="w-10 h-10 rounded-full overflow-hidden cursor-pointer flex items-center justify-center font-bold text-lg select-none bg-[#141539] dark:bg-white text-[#1f3756]">
             {me?.avatarUrl ? (

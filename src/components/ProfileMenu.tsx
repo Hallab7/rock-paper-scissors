@@ -7,6 +7,7 @@ import Leaderboard from "./leaderboard";
 import  ViewProfileDetails from "./ViewProfile"
 import CheckBox from "./ui/checkBox"
 import { playClickSound, stopMusic } from "../utils/playClickSound";
+import { useRouter } from "next/navigation";
 
 import {
   MdLogout,
@@ -17,6 +18,7 @@ import {
   MdSettings,
   MdLeaderboard,
   MdArrowBack,
+  MdGamepad
 } from "react-icons/md";
 
 /* ----------------------
@@ -100,6 +102,8 @@ async function changePasswordAPI(oldPassword, newPassword) {
 
 export default function ProfileMenu({
   user,
+  handleToggleDarkMode,
+  darkMode,
   rankDetails,
   closeAction,
   logoutAction,
@@ -109,6 +113,8 @@ export default function ProfileMenu({
   topPlayers,
   leaderboardLoading
 }) {
+
+  const router = useRouter();
   // tabs + loading + errors
   const [activeTab, setActiveTab] = useState("view");
   const [loading, setLoading] = useState(false);
@@ -127,31 +133,31 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
   // settings state
   const [sound, setSound] = useState(true); // "on" | "off"
   const [notifications, setNotifications] = useState("on"); // "on" | "off"
-  const [darkMode, setDarkMode] = useState("on"); // "on" | "off"
+  // const [darkMode, setDarkMode] = useState("on"); // "on" | "off"
 
-  useEffect(() => {
-    const savedMode = localStorage.getItem("theme") || "off";
-    setDarkMode(savedMode);
+  // useEffect(() => {
+  //   const savedMode = localStorage.getItem("theme") || "off";
+  //   setDarkMode(savedMode);
 
-    if (savedMode === "on") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
+  //   if (savedMode === "on") {
+  //     document.documentElement.classList.add("dark");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //   }
+  // }, []);
 
-  const toggleDarkMode = () => {
-    const newMode = darkMode === "on" ? "off" : "on";
-    setDarkMode(newMode);
-    localStorage.setItem("theme", newMode);
+  // const toggleDarkMode = () => {
+  //   const newMode = darkMode === "on" ? "off" : "on";
+  //   setDarkMode(newMode);
+  //   localStorage.setItem("theme", newMode);
 
-    if (newMode === "on") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-    playClickSound("checkButton");
-  };
+  //   if (newMode === "on") {
+  //     document.documentElement.classList.add("dark");
+  //   } else {
+  //     document.documentElement.classList.remove("dark");
+  //   }
+  //   playClickSound("checkButton");
+  // };
 
   // change password modal state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -349,6 +355,7 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
         <nav className="mb-4 flex flex-col space-y-2">
           {[
             { key: "view", label: "View Profile", icon: <MdPerson size={20} /> },
+            { key: "Game", label: "Game Room", icon: <MdGamepad size={20} /> },
             { key: "edit", label: "Edit Profile", icon: <MdEdit size={20} /> },
             { key: "friends", label: "Friends / Invite Players", icon: <MdPeople size={20} /> },
             { key: "history", label: "Game History / Match Records", icon: <MdHistory size={20} /> },
@@ -362,7 +369,7 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
                 playClickSound("clickButton")
               }}
               className={`flex items-center space-x-2 px-3 py-2 rounded cursor-pointer ${
-                activeTab === tab.key ? "bg-blue-600 text-white" : "hover:bg-gray-200"
+                activeTab === tab.key ? "bg-blue-600 text-white" : "hover:bg-blue-700"
               }`}
             >
               {tab.icon}
@@ -387,6 +394,17 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
               loading={loading}
             />
           )}
+         {activeTab === "Game" && (
+  <div className="text-center">
+    <p className=" mb-4 text-white">Ready to play? Connect with friends, challenge players online, and start a new game!</p>
+    <button
+      onClick={() => router.push("/game-room")}
+      className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors duration-200"
+    >
+      Play Online
+    </button>
+  </div>
+)}
 
           {activeTab === "friends" && <FriendsTab friends={user.friends || []} />}
 
@@ -421,9 +439,9 @@ const [showConfirmPw, setShowConfirmPw] = useState(false);
     {/* Dark Mode */}
         <CheckBox
       toolName="Dark Mode"
-      checked={darkMode === "on"}
+      checked={darkMode === 'on'}
       handleOnChange={() => {
-        toggleDarkMode();
+        handleToggleDarkMode();
         playClickSound("checkButton");
       }}
     />
@@ -708,6 +726,7 @@ function EditProfileTab({ username, avatar, setName, setAvatarFile, onSave, onDe
 }
 
 function FriendsTab({ friends }) {
+  const router = useRouter();
   return (
   <div>
     <h3 className="font-semibold mb-2">Friends List</h3>
@@ -723,7 +742,7 @@ function FriendsTab({ friends }) {
     <button
       className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
       onClick={() => {
-        alert("Invite functionality to be implemented");
+        router.push("/game-room");
         playClickSound("clickButton");
       }}
     >

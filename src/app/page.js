@@ -25,6 +25,7 @@ export default function Home() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const router = useRouter();
   const [changeLoadingMessage, setChangeLoadingMessage] = useState("");
+  const [darkMode, setDarkMode] = useState("on");
 
    const [rank, setRank] = useState([]);
    const [topPlayers, setTopPlayers] = useState([]);
@@ -105,6 +106,30 @@ useEffect(() => {
     fetchLeaderboard();
   }, []);
 
+  useEffect(() => {
+      const savedMode = localStorage.getItem("theme") || "off";
+      setDarkMode(savedMode);
+  
+      if (savedMode === "on") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }, []);
+  
+    const toggleDarkMode = () => {
+      const newMode = darkMode === "on" ? "off" : "on";
+      setDarkMode(newMode);
+      localStorage.setItem("theme", newMode);
+  
+      if (newMode === "on") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      playClickSound("checkButton");
+    };
+
 
 
 
@@ -147,6 +172,10 @@ useEffect(() => {
     </div>
 
   );
+
+  
+  
+    
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-[#141539] text-[#141539] dark:text-white md:p-10 p-10 relative">
@@ -250,6 +279,8 @@ useEffect(() => {
       <AnimatePresence>
         {showProfileMenu && (
           <ProfileMenu
+          darkMode={darkMode}
+          handleToggleDarkMode={toggleDarkMode}
           user={user}
           rankDetails={currentUser}
           closeAction={() => setShowProfileMenu(false)}
