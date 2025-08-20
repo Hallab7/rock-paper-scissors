@@ -319,7 +319,7 @@ export default function Game() {
     ) : me ? (
         <>
         <p className="mb-2 text-center">
-            Logged in as: <b className="font-bold text-blue-600">{user.username.charAt(0).toUpperCase() + user.username.slice(1) || "Unknown"}!</b>
+            Logged in as: <b className="font-bold text-blue-600">{me.username.charAt(0).toUpperCase() + me.username.slice(1) || "Unknown"}!</b>
         </p>
         <div className="w-10 h-10 rounded-full overflow-hidden cursor-pointer flex items-center justify-center font-bold text-lg select-none bg-[#141539] dark:bg-white text-[#1f3756]">
             {me?.avatarUrl ? (
