@@ -25,6 +25,7 @@ export default function Home() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const router = useRouter();
   const [changeLoadingMessage, setChangeLoadingMessage] = useState("");
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   const [darkMode, setDarkMode] = useState("on");
 
    const [rank, setRank] = useState([]);
@@ -98,6 +99,7 @@ useEffect(() => {
           null;
 
         setCurrentUser(me);
+        setLeaderboardLoading(false);
       } catch (error) {
         console.error("Error fetching leaderboard:", error);
       }

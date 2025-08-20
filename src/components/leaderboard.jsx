@@ -1,15 +1,15 @@
 import React from "react";
 
 export default function Leaderboard({ topPlayers = [], currentUser = null, loading }) {
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center">
-        <p className="text-lg font-semibold animate-pulse">
-          Loading leaderboard...
-        </p>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex justify-center items-center">
+  //       <p className="text-lg font-semibold animate-pulse">
+  //         Loading leaderboard...
+  //       </p>
+  //     </div>
+  //   );
+  // }
 
   const renderRank = (rank) => {
     if (rank === 1) return <span style={{ fontSize: "1.4rem" }}>🥇</span>;
@@ -50,6 +50,15 @@ export default function Leaderboard({ topPlayers = [], currentUser = null, loadi
 
   // Check if logged-in user is already in topPlayers
   const isUserInTop = currentUser && topPlayers.some(p => p._id === currentUser._id);
+
+  if (loading) {
+    return (
+    <div className="flex justify-center items-center">
+      <p className="text-lg font-semibold animate-pulse">
+        Loading leaderboard...
+      </p>
+    </div>
+  )}
 
   return (
     <div className="p-6 bg-white/70 rounded-xl shadow-lg text-black max-w-2xl mx-auto backdrop-blur-sm">
