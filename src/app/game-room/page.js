@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { MdArrowBack } from "react-icons/md";
 import Link from "next/link";
 
-const SOCKET_URL = "http://localhost:4000"
+const SOCKET_URL = "process.env.NEXT_PUBLIC_SOCKET_URL"
 
 const normalizeMove = (m) => {
   if (!m) return null;
