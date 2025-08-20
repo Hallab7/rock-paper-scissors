@@ -1,4 +1,4 @@
-// src/app/your-page-path/Game.jsx  (or wherever you keep it)
+// src/app/your-page-path/Game.jsx
 "use client";
 import { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { MdArrowBack } from "react-icons/md";
 import Link from "next/link";
 
-const SOCKET_URL = "https://rock-paper-brei.onrender.com"; // Or from env
+const SOCKET_URL = "http://localhost:4000"
 
 const normalizeMove = (m) => {
   if (!m) return null;
@@ -30,10 +30,11 @@ const decideWinner = (me, opp) => {
 
 export default function Game() {
   const socketRef = useRef(null);
+  const resultReportedRef = useRef(false); // prevent duplicate roundResult emits
   const [mySid, setMySid] = useState(null);
 
   // Logged-in user from /api/auth/me
-  const [me, setMe] = useState(null); // { _id, username, avatarUrl, score, ... }
+  const [me, setMe] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
   const [status, setStatus] = useState("Click find match or create/join room");
@@ -55,7 +56,7 @@ export default function Game() {
   ];
   const getChoice = (name) => choices.find((c) => c.name === name);
 
-  // 1) Fetch current user from your Next.js API (cookie-based auth)
+  // 1) Fetch current user
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -63,7 +64,7 @@ export default function Game() {
         const res = await fetch("/api/auth/me", { credentials: "same-origin" });
         const data = await res.json();
         if (!cancelled) setMe(data?.user || null);
-      } catch (e) {
+      } catch {
         if (!cancelled) setMe(null);
       } finally {
         if (!cancelled) setLoadingUser(false);
@@ -74,7 +75,7 @@ export default function Game() {
     };
   }, []);
 
-  // 2) Socket connect once (IMPORTANT: dependency array is empty — do NOT re-run on playerMove)
+  // 2) Socket connect once
   useEffect(() => {
     if (socketRef.current) return;
 
@@ -113,7 +114,7 @@ export default function Game() {
       setPlayers(players || []);
       setInRoom(true);
       setStatus(`Room created: ${roomId}. Share this ID with a friend.`);
-      setRoomIdStatus(true)
+      setRoomIdStatus(true);
       resetRound(false);
     });
 
@@ -129,64 +130,78 @@ export default function Game() {
       resetRound(false);
     });
 
-    // IMPORTANT: server now sends { message, stillInRoom, players }
-    socket.on("opponentLeft", (msg) => {
-      // update players list if server provided it
-      if (msg?.players) setPlayers(msg.players);
-      // keep inRoom true so UI buttons stay hidden until local player explicitly leaves
-      setStatus(msg.message || "Opponent left");
-      setPlayAgainRequested(false);
-      setResult(false)
+    // Opponent move
+    socket.on("opponentMove", (incoming) => {
+      const normalized = normalizeMove(
+        typeof incoming === "object" ? incoming.move : incoming
+      );
+      setOpponentMove(normalized);
+      if (!playerMove) setStatus("Opponent has played. Your turn!");
     });
 
-    socket.on("opponentMove", (incoming) => {
-  const normalized = normalizeMove(
-    typeof incoming === "object" ? incoming.move : incoming
-  );
+    // 🔥 SCOREBOARD updates from server
+    socket.on("scoreUpdate", ({ players }) => {
+      if (Array.isArray(players)) setPlayers(players);
+    });
 
-  setOpponentMove(normalized);
-
-  if (!playerMove) {
-    setStatus("Opponent has played. Your turn!");
-  }
-});
-
-
-
-    socket.on("newRound", () => {
+    // New round (server also resets scores here in your backend)
+    socket.on("newRound", (payload) => {
+      if (payload?.players) setPlayers(payload.players);
       resetRound(true);
       setPlayAgainRequested(false);
     });
 
-    socket.on("roomError", (msg) => {
-      // display server errors
-      setStatus(msg || "Room error");
+    socket.on("roomError", (msg) => setStatus(msg || "Room error"));
+
+    socket.on("opponentLeft", (msg) => {
+      if (msg?.players) setPlayers(msg.players);
+      setStatus(msg.message || "Opponent left");
+      setPlayAgainRequested(false);
+      setResult(null);
     });
 
     return () => {
-      // only disconnect when component unmounts
       socket.disconnect();
       socketRef.current = null;
     };
-  }, []); // <-- EMPTY deps: this must not re-run when playerMove changes
+  }, []); // do not depend on playerMove/result here
 
-  // 3) Decide winner once both moves are in
+  // 3) Decide winner and (winner only) emit roundResult
   useEffect(() => {
     if (!playerMove || !opponentMove) return;
-    if (result !== null) return;
+    if (resultReportedRef.current) return;
 
     const outcome = decideWinner(playerMove, opponentMove);
     if (outcome === "tie") {
       setResult("It's a Tie! 🤝");
       setStatus("It's a Tie! 🤝");
-    } else if (outcome === "win") {
+      resultReportedRef.current = true; // round resolved; no score change
+      return;
+    }
+
+    const myPlayer = players.find((p) => p.socketId === mySid) || null;
+    const oppPlayer = players.find((p) => p.socketId !== mySid) || null;
+
+    if (outcome === "win") {
       setResult("You Win! 🎉");
       setStatus("You Win! 🎉");
+      // ✅ Only the winner emits so we don't double-increment
+      if (socketRef.current && roomId && mySid) {
+        socketRef.current.emit("roundResult", {
+          roomId,
+          winnerSocketId: mySid,
+        });
+      }
     } else {
       setResult("You Lose! 😢");
       setStatus("You Lose! 😢");
+      // Loser does NOT emit. Winner client will emit.
+      // (Optional safety: if opp socket missing for some reason, we could still emit on their behalf)
+      // if (socketRef.current && roomId && oppPlayer?.socketId) { ... }
     }
-  }, [playerMove, opponentMove, result]);
+
+    resultReportedRef.current = true;
+  }, [playerMove, opponentMove, roomId, mySid, players]);
 
   // Helpers: build user payload from /api/auth/me
   const userPayload = me
@@ -194,7 +209,7 @@ export default function Game() {
         userId: me._id,
         username: me.username,
         avatarUrl: me.avatarUrl || null,
-        score: me.score ?? 0,
+        score: 0, // start each match at 0
       }
     : null;
 
@@ -257,22 +272,22 @@ export default function Game() {
     setPlayerMove(null);
     setOpponentMove(null);
     setResult(null);
+    resultReportedRef.current = false;
     if (announce) setStatus("New round! Make your move.");
   };
 
   const leaveRoom = () => {
-    if (roomId) {
-      socketRef.current?.emit("leaveRoom", roomId);
-    }
+    if (roomId) socketRef.current?.emit("leaveRoom", roomId);
     setRoomId(null);
     setInRoom(false);
     setPlayers([]);
     resetRound(false);
     setStatus("You left the room. Ready to find/join again.");
     setPlayAgainRequested(false);
+    setRoomIdStatus(false);
   };
 
-  // Derive my/opponent display names
+  // Derive my/opponent display
   const myPlayer = players.find((p) => p.socketId === mySid) || null;
   const oppPlayer = players.find((p) => p.socketId !== mySid) || null;
 
@@ -280,74 +295,80 @@ export default function Game() {
     if (!roomId) return;
     await navigator.clipboard.writeText(roomId);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000); // reset after 2s
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-[#141539] text-white px-4">
-
-      
-
       <div className="w-full mt-6 flex items-center justify-between mb-4">
-    {/* User info status */}
-          <div>
-            <Link href="/"
-            >
-              <button 
-              // onClick={ () => {
-              //     closeAction();
-              //     playClickSound("clickButton");
-              //   }} 
-                          className="text-white hover:text-gray-700 cursor-pointer">
-                            <MdArrowBack size={24} />
-                          </button>
-                          </Link>
-            </div>
-    { loadingUser ? (
-        <div className="flex items-center justify-between animate-pulse w-full">
-            {/* Skeleton for Username */}
-            <div></div>
-            <div className=" flex items-center">
+        <div>
+          <Link href="/">
+            <button className="text-white hover:text-gray-300 cursor-pointer">
+              <MdArrowBack size={24} />
+            </button>
+          </Link>
+        </div>
 
-            <p>Logged in as:</p>
-            <p className="h-4 bg-gray-700 rounded w-20"></p>
-            </div>
-            
-            {/* Skeleton for Avatar */}
-            <div className="w-10 h-10 rounded-full bg-gray-700"></div>
-        </div>
-    ) : me ? (
-        <>
-        <p className="mb-2 text-center">
-            Logged in as: <b className="font-bold text-blue-600">{me.username.charAt(0).toUpperCase() + me.username.slice(1) || "Unknown"}!</b>
-        </p>
-        <div className="w-10 h-10 rounded-full overflow-hidden cursor-pointer flex items-center justify-center font-bold text-lg select-none bg-[#141539] dark:bg-white text-[#1f3756]">
-            {me?.avatarUrl ? (
+        {loadingUser ? (
+          <div className="flex items-center gap-3 animate-pulse">
+            <p>Welcome Online,</p>
+            <div className="h-4 w-20 bg-gray-700 rounded" />
+            <div className="w-10 h-10 rounded-full bg-gray-700" />
+          </div>
+        ) : me ? (
+          <div className="flex items-center gap-3">
+            <p>
+              Welcome Online,{" "}
+              <b className="font-bold text-blue-400">
+                {me?.username.toUpperCase() || "unknown"}!
+              </b>
+            </p>
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center font-bold text-lg select-none bg-[#141539] dark:bg-white text-[#1f3756]">
+              {me?.avatarUrl ? (
                 <Image
-                    src={me.avatarUrl}
-                    alt="User Avatar"
-                    width={40}
-                    height={40}
-                    className="object-cover w-full h-full"
+                  src={me.avatarUrl}
+                  alt="User Avatar"
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
                 />
-            ) : (
-                me?.username?.charAt(0).toUpperCase() || "U"
-            )}
-        </div>
-        </>
-    ) : (
-        <p className="mb-2 text-center text-red-300">You are not logged in.</p>
-    )}
-</div>
-      
-      <h1 className="text-3xl text-center font-bold mb-4">🎮 Rock Paper Scissors Online</h1>
+              ) : (
+                (me?.username?.charAt(0) || "U").toUpperCase()
+              )}
+            </div>
+          </div>
+        ) : (
+          <p className="text-red-300">You are not logged in.</p>
+        )}
+      </div>
+
+      <h1 className="text-3xl text-center font-bold mb-2">🎮 Rock Paper Scissors Online</h1>
       <p className="mb-4 text-center">{status}</p>
 
-      {/* Banner with names */}
+      {/* Names + LIVE SCOREBOARD */}
       {players.length > 0 && (
-        <p className="text-lg font-semibold mb-4">
-          {(myPlayer?.username || players[0]?.username || "You")} 🆚 {(oppPlayer?.username || players[1]?.username || "Opponent")}
-        </p>
+        <div className="mb-4 w-full max-w-xl">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-[#1b1f3a] rounded-xl p-4 flex flex-col items-center">
+              <span className="text-sm text-gray-300">You</span>
+              <span className="text-lg font-semibold">
+                {myPlayer?.username.toUpperCase() || "You"}
+              </span>
+              <div className="mt-2 text-3xl font-extrabold leading-none">
+                {myPlayer?.score ?? 0}
+              </div>
+            </div>
+            <div className="bg-[#1b1f3a] rounded-xl p-4 flex flex-col items-center">
+              <span className="text-sm text-gray-300">Opponent</span>
+              <span className="text-lg font-semibold">
+                {oppPlayer?.username.toUpperCase() || "Opponent"}
+              </span>
+              <div className="mt-2 text-3xl font-extrabold leading-none">
+                {oppPlayer?.score ?? 0}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="flex flex-wrap gap-3 mb-5 justify-center items-center">
@@ -389,22 +410,16 @@ export default function Game() {
           <p>
             Room ID: <span className="font-mono">{roomId}</span>
           </p>
-          <button
-            onClick={handleCopy}
-            className="p-1 rounded-md dark:hover:bg-gray-700 transition"
-          >
+          <button onClick={handleCopy} className="p-1 rounded-md hover:bg-gray-700 transition">
             <FaCopy size={18} />
           </button>
-          {copied && (
-            <span className="text-green-500 text-sm ml-2">Copied!</span>
-          )}
+          {copied && <span className="text-green-500 text-sm ml-2">Copied!</span>}
         </div>
       )}
 
-
       {/* === Game board === */}
       <div className="grid place-items-center mt-6">
-        {/* If no move made yet → show triangle choices */}
+        {/* No move yet → choices */}
         {!playerMove && !result && (
           <div className="relative w-[330px] h-[310.6px] md:w-[350px] md:h-[318.6px]">
             {choices.slice(0, 2).map((choice, index) => {
@@ -468,7 +483,7 @@ export default function Game() {
           </div>
         )}
 
-        {/* Both hands side-by-side */}
+        {/* Both hands */}
         {playerMove && opponentMove && (
           <div className="flex justify-center items-center gap-8 mt-6">
             <div
@@ -492,8 +507,14 @@ export default function Game() {
         {result && (
           <>
             <h2 className="text-2xl font-bold mt-3">{result}</h2>
-            <p>{myPlayer?.username || "You"} played: <span className="font-semibold">{playerMove}</span></p>
-            <p>{oppPlayer?.username || "Opponent"}  played: <span className="font-semibold">{opponentMove}</span></p>
+            <p>
+              {(myPlayer?.username || "You")} played:{" "}
+              <span className="font-semibold">{playerMove}</span>
+            </p>
+            <p>
+              {(oppPlayer?.username || "Opponent")} played:{" "}
+              <span className="font-semibold">{opponentMove}</span>
+            </p>
           </>
         )}
       </div>

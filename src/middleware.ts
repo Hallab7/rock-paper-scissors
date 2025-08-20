@@ -15,7 +15,7 @@ export async function middleware(req) {
   const token = req.cookies.get("token")?.value;
   console.log("Token found:", !!token);
 
-  if (!token && ["/", "/game", "/multiplayer", "/result"].includes(pathname)) {
+  if (!token && ["/", "/game-room", "/multiplayer", "/result"].includes(pathname)) {
     console.log("No token and protected route, redirecting to login");
     return NextResponse.redirect(new URL("/landing-page", req.url));
   }
@@ -43,5 +43,5 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/", "/game", "/multiplayer", "/result"],
+  matcher: ["/", "/game-room", "/multiplayer", "/result"],
 };
